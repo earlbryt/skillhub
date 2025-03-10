@@ -100,6 +100,10 @@
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
   
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+  
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
@@ -107,6 +111,23 @@
   .btn-hover {
     @apply transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
   }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm;
+  }
+  
+  .premium-card {
+    @apply border border-border/40 bg-card shadow-sm hover:shadow transition-all duration-300;
+  }
+  
+  .premium-input {
+    @apply bg-muted/50 border-border/60 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
+  }
+  
+  .premium-button {
+    @apply bg-primary text-white rounded-md px-6 py-2.5 font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow;
+  }
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
