@@ -1,12 +1,16 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  
+  // Mock authentication state - in a real app, this would come from an auth context
+  const isAuthenticated = false;
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -26,19 +30,28 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center space-x-6">
           <Link 
             to="/" 
-            className="font-medium text-foreground/90 hover:text-primary transition-colors"
+            className={cn(
+              "font-medium text-foreground/90 hover:text-primary transition-colors",
+              location.pathname === "/" && "text-primary"
+            )}
           >
             Home
           </Link>
           <Link 
             to="/workshops" 
-            className="font-medium text-foreground/90 hover:text-primary transition-colors"
+            className={cn(
+              "font-medium text-foreground/90 hover:text-primary transition-colors",
+              location.pathname.includes("/workshops") && "text-primary"
+            )}
           >
             Workshops
           </Link>
           <Link 
             to="/about" 
-            className="font-medium text-foreground/90 hover:text-primary transition-colors"
+            className={cn(
+              "font-medium text-foreground/90 hover:text-primary transition-colors",
+              location.pathname === "/about" && "text-primary"
+            )}
           >
             About
           </Link>
@@ -46,15 +59,26 @@ const Navbar = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/login" className="flex items-center gap-2">
-              <User size={16} />
-              Login
-            </Link>
-          </Button>
-          <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90" asChild>
-            <Link to="/register">Register</Link>
-          </Button>
+          {isAuthenticated ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/profile" className="flex items-center gap-2">
+                <User size={16} />
+                My Profile
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/login" className="flex items-center gap-2">
+                  <User size={16} />
+                  Login
+                </Link>
+              </Button>
+              <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90" asChild>
+                <Link to="/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -77,37 +101,56 @@ const Navbar = () => {
         <nav className="flex flex-col space-y-6">
           <Link 
             to="/" 
-            className="font-medium text-xl py-2 border-b border-border"
+            className={cn(
+              "font-medium text-xl py-2 border-b border-border",
+              location.pathname === "/" && "text-primary"
+            )}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
           <Link 
             to="/workshops" 
-            className="font-medium text-xl py-2 border-b border-border"
+            className={cn(
+              "font-medium text-xl py-2 border-b border-border",
+              location.pathname.includes("/workshops") && "text-primary"
+            )}
             onClick={() => setIsMenuOpen(false)}
           >
             Workshops
           </Link>
           <Link 
             to="/about" 
-            className="font-medium text-xl py-2 border-b border-border"
+            className={cn(
+              "font-medium text-xl py-2 border-b border-border",
+              location.pathname === "/about" && "text-primary"
+            )}
             onClick={() => setIsMenuOpen(false)}
           >
             About
           </Link>
           
           <div className="flex flex-col space-y-4 mt-6">
-            <Button variant="outline" className="w-full justify-center" asChild>
-              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                Login
-              </Link>
-            </Button>
-            <Button className="w-full justify-center bg-primary hover:bg-primary/90" asChild>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                Register
-              </Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="outline" className="w-full justify-center" asChild>
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                  My Profile
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" className="w-full justify-center" asChild>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    Login
+                  </Link>
+                </Button>
+                <Button className="w-full justify-center bg-primary hover:bg-primary/90" asChild>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       </div>
