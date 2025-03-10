@@ -1,13 +1,11 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, LogIn, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
-import { Google } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -141,7 +139,7 @@ const Login = () => {
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
-              <Google className="mr-2 h-4 w-4" />
+              <Globe className="mr-2 h-4 w-4" />
               Sign in with Google
             </Button>
           </form>
