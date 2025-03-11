@@ -37,9 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Use type assertion to tell TypeScript that 'profiles' is a valid table
+      // Use a more typesafe approach with explicit casting of the response data
       const { data, error } = await supabase
-        .from('profiles' as any)
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
