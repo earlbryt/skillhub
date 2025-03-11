@@ -8,6 +8,7 @@ interface FloatingBadgeProps {
   text: string;
   position: string;
   rotate?: string;
+  gradient?: string;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ const FloatingBadge = ({
   text,
   position,
   rotate = "",
+  gradient = "from-primary via-accent to-secondary",
   className
 }: FloatingBadgeProps) => {
   return (
@@ -25,7 +27,10 @@ const FloatingBadge = ({
       className
     )}>
       <Icon className="w-5 h-5 text-primary" />
-      <span className="text-sm font-medium bg-gradient-to-r from-primary via-accent to-secondary text-transparent bg-clip-text">
+      <span className={cn(
+        "text-sm font-medium", 
+        gradient ? `bg-gradient-to-r ${gradient} text-transparent bg-clip-text` : "text-primary"
+      )}>
         {text}
       </span>
     </div>
