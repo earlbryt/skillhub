@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -27,30 +28,32 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/workshops" element={<Workshops />} />
-          <Route path="/workshops/:id" element={<WorkshopDetails />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/profile" element={<UserProfile />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />}>
-            <Route index element={<AdminOverview />} />
-            <Route path="workshops" element={<AdminWorkshops />} />
-            <Route path="workshops/:id/attendees" element={<AdminWorkshopAttendees />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/workshops" element={<Workshops />} />
+            <Route path="/workshops/:id" element={<WorkshopDetails />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/profile" element={<UserProfile />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="workshops" element={<AdminWorkshops />} />
+              <Route path="workshops/:id/attendees" element={<AdminWorkshopAttendees />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

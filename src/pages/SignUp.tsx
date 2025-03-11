@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, User, UserPlus, Globe } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, UserPlus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { FcGoogle } from 'react-icons/fc';
 
 const SignUp = () => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,32 +20,49 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signUp, signInWithGoogle, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  useEffect(() => {
+    // If user is already logged in, redirect to home page
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Account created!",
-        description: "You have successfully created an account.",
-      });
-    }, 1500);
+    const { error } = await signUp(email, password, firstName, lastName);
+    
+    setIsLoading(false);
+    
+    if (!error) {
+      // Clear form
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+    }
   };
 
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = async () => {
     setIsLoading(true);
-    
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Google Authentication",
-        description: "Google authentication would happen here.",
-      });
-    }, 1500);
+    await signInWithGoogle();
+    setIsLoading(false);
   };
 
   return (
@@ -56,19 +77,37 @@ const SignUp = () => {
           </div>
           
           <form onSubmit={handleSignUp} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input 
-                  id="name"
-                  type="text" 
-                  placeholder="Enter your full name" 
-                  className="pl-10"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input 
+                    id="firstName"
+                    type="text" 
+                    placeholder="Enter your first name" 
+                    className="pl-10"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input 
+                    id="lastName"
+                    type="text" 
+                    placeholder="Enter your last name" 
+                    className="pl-10"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             </div>
             
@@ -100,6 +139,7 @@ const SignUp = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
                 <button 
                   type="button"
@@ -123,6 +163,7 @@ const SignUp = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
                 <button 
                   type="button"
@@ -179,7 +220,7 @@ const SignUp = () => {
               onClick={handleGoogleSignUp}
               disabled={isLoading}
             >
-              <Globe className="mr-2 h-4 w-4" />
+              <FcGoogle className="mr-2 h-5 w-5" />
               Sign up with Google
             </Button>
           </form>

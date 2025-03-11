@@ -2,15 +2,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  
-  // Mock authentication state - in a real app, this would come from an auth context
-  const isAuthenticated = false;
+  const { user, signOut } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -59,13 +58,19 @@ const Navbar = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center space-x-4">
-          {isAuthenticated ? (
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/profile" className="flex items-center gap-2">
-                <User size={16} />
-                My Profile
-              </Link>
-            </Button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/profile" className="flex items-center gap-2">
+                  <User size={16} />
+                  My Profile
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => signOut()} className="flex items-center gap-2">
+                <LogOut size={16} />
+                Logout
+              </Button>
+            </div>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -131,12 +136,20 @@ const Navbar = () => {
           </Link>
           
           <div className="flex flex-col space-y-4 mt-6">
-            {isAuthenticated ? (
-              <Button variant="outline" className="w-full justify-center" asChild>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                  My Profile
-                </Link>
-              </Button>
+            {user ? (
+              <>
+                <Button variant="outline" className="w-full justify-center" asChild>
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                    My Profile
+                  </Link>
+                </Button>
+                <Button variant="default" className="w-full justify-center" onClick={() => {
+                  signOut();
+                  setIsMenuOpen(false);
+                }}>
+                  Logout
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" className="w-full justify-center" asChild>

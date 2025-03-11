@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, LogIn, Globe } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,32 +16,33 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signIn, signInWithGoogle, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    // If user is already logged in, redirect to home page
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Success!",
-        description: "You have successfully logged in.",
-      });
-    }, 1500);
+    const { error } = await signIn(email, password);
+    
+    setIsLoading(false);
+    
+    if (!error) {
+      // The auth context will handle navigation and success toast
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
-    
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Google Authentication",
-        description: "Google authentication would happen here.",
-      });
-    }, 1500);
+    await signInWithGoogle();
+    setIsLoading(false);
   };
 
   return (
@@ -139,7 +143,7 @@ const Login = () => {
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
-              <Globe className="mr-2 h-4 w-4" />
+              <FcGoogle className="mr-2 h-5 w-5" />
               Sign in with Google
             </Button>
           </form>
