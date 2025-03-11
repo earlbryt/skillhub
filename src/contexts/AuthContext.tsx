@@ -5,10 +5,19 @@ import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
+type Profile = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
-  profile: any | null;
+  profile: Profile | null;
   isLoading: boolean;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any | null }>;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
@@ -21,16 +30,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      // Use type assertion to tell TypeScript that 'profiles' is a valid table
+      const { data, error } = await supabase
+        .from('profiles' as any)
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      return data as Profile;
+    } catch (error) {
+      console.error('Error in fetchProfile:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
+      }
+      
       setIsLoading(false);
     });
 
@@ -39,18 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setIsLoading(false);
-
+        
         if (session?.user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          setProfile(data);
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
         } else {
           setProfile(null);
         }
+        
+        setIsLoading(false);
       }
     );
 
