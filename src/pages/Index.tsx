@@ -9,6 +9,7 @@ import WorkshopCard, { WorkshopProps } from '@/components/WorkshopCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import CountdownTimer from '@/components/CountdownTimer';
 import ChatbotAssistant from '@/components/ChatbotAssistant';
+import HeroSection from '@/components/HeroSection';
 
 const Index = () => {
   // Sample workshop data
@@ -101,48 +102,10 @@ const Index = () => {
       
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-background to-muted">
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="text-center lg:text-left">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 gradient-heading">
-                  Elevate Your Skills with Expert-Led Workshops
-                </h1>
-                <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-xl mx-auto lg:mx-0">
-                  Join our interactive workshops designed to give you practical skills 
-                  that stand out in today's digital economy.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 btn-hover" asChild>
-                    <Link to="/register">
-                      Register Now <ChevronRight size={18} />
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" className="btn-hover" asChild>
-                    <Link to="/workshops">Browse Workshops</Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl rounded-full transform -translate-y-1/4 translate-x-1/4 opacity-50"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=800&q=80"
-                  alt="Students in workshop" 
-                  className="rounded-xl shadow-lg relative z-10 mx-auto lg:ml-auto"
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Background decorations */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary opacity-5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-1/3 right-0 w-80 h-80 bg-accent opacity-5 rounded-full blur-3xl"></div>
-          </div>
-        </section>
+        <HeroSection />
         
         {/* Featured Workshop */}
-        <section className="py-16 bg-background">
+        <section id="featured-workshops" className="py-16 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4 gradient-heading">Featured Workshops</h2>
@@ -179,7 +142,7 @@ const Index = () => {
               {features.map((feature, index) => (
                 <div 
                   key={index} 
-                  className="bg-card p-6 rounded-xl shadow-sm border border-border card-hover"
+                  className="premium-card p-6 card-hover"
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <feature.icon size={24} className="text-primary" />
@@ -195,7 +158,7 @@ const Index = () => {
         {/* Upcoming Workshop with Countdown */}
         <section className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
           <div className="container mx-auto px-4">
-            <div className="bg-card rounded-xl overflow-hidden shadow-md border border-border">
+            <div className="premium-card overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="p-8 lg:p-12">
                   <div className="text-sm font-medium text-accent mb-2">Next Workshop</div>

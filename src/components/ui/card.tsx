@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "premium-card p-1", // Apply our custom premium-card class
+      "premium-card p-1 transform hover:scale-102 hover:shadow-xl transition-all duration-300", 
       className
     )}
     {...props}
@@ -37,7 +37,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight gradient-heading", // Apply gradient text
+      "text-2xl font-semibold leading-none tracking-tight gradient-heading", 
       className
     )}
     {...props}
