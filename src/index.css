@@ -92,42 +92,76 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E"),
+      radial-gradient(circle at 20% 30%, rgba(155, 135, 245, 0.15) 0%, transparent 40%), 
+      radial-gradient(circle at 80% 70%, rgba(233, 168, 244, 0.1) 0%, transparent 40%);
+    background-attachment: fixed;
   }
 }
 
 @layer components {
   .gradient-heading {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent font-extrabold;
   }
   
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent;
+  }
+
+  .glass-card {
+    @apply relative backdrop-blur-sm border border-white/30 bg-white/60 dark:bg-black/60 dark:border-white/10 shadow-xl;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.05);
   }
   
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
-  }
-  
-  .btn-hover {
-    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
-  }
-  
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm;
+    @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.05);
   }
   
   .premium-card {
-    @apply border border-border/40 bg-card shadow-sm hover:shadow transition-all duration-300;
+    @apply relative border border-white/30 bg-white/80 backdrop-blur-sm dark:bg-black/50 dark:border-white/10 rounded-xl;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .premium-card::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl -z-10 opacity-20;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  }
+  
+  .btn-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
   }
   
   .premium-input {
-    @apply bg-muted/50 border-border/60 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
+    @apply bg-white/70 backdrop-blur-sm border-border/60 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm;
   }
   
   .premium-button {
-    @apply bg-primary text-white rounded-md px-6 py-2.5 font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow;
+    @apply bg-primary text-white rounded-md px-6 py-2.5 font-medium hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg;
+    background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .designer-card {
+    @apply relative rounded-xl overflow-hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .designer-card::before {
+    content: '';
+    @apply absolute inset-0 -z-10;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    opacity: 0.05;
+  }
+
+  .designer-card::after {
+    content: '';
+    @apply absolute top-0 right-0 h-20 w-20 -z-10;
+    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+    opacity: 0.1;
+    border-radius: 0 0 0 100%;
   }
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
