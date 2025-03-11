@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -92,10 +91,47 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E"),
-      radial-gradient(circle at 20% 30%, rgba(155, 135, 245, 0.15) 0%, transparent 40%), 
-      radial-gradient(circle at 80% 70%, rgba(233, 168, 244, 0.1) 0%, transparent 40%);
-    background-attachment: fixed;
+    background: 
+      linear-gradient(135deg, rgba(155, 135, 245, 0.05) 0%, transparent 100%),
+      linear-gradient(45deg, rgba(233, 168, 244, 0.05) 0%, transparent 100%),
+      radial-gradient(circle at 20% 30%, rgba(155, 135, 245, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(233, 168, 244, 0.08) 0%, transparent 40%);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Animated geometric background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background-image: 
+      linear-gradient(45deg, rgba(155, 135, 245, 0.03) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(233, 168, 244, 0.03) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(155, 135, 245, 0.03) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(233, 168, 244, 0.03) 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 0, 20px -20px, 0 20px;
+    animation: patternMove 20s linear infinite;
+  }
+
+  /* Floating circles animation */
+  body::after {
+    content: '';
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(155, 135, 245, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(233, 168, 244, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(155, 135, 245, 0.03) 0%, transparent 40%);
+    z-index: -1;
+    animation: floatingCircles 15s ease-in-out infinite alternate;
   }
 }
 
@@ -120,15 +156,31 @@
   
   .premium-card {
     @apply relative border border-white/30 bg-white/80 backdrop-blur-sm dark:bg-black/50 dark:border-white/10 rounded-xl;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.1),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.05),
+      0 0 20px rgba(155, 135, 245, 0.1);
+    transition: all 0.3s ease-in-out;
   }
 
   .premium-card::before {
     content: '';
     @apply absolute inset-0 rounded-xl -z-10 opacity-20;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    filter: blur(10px);
+    transform: scale(0.98);
+    transition: all 0.3s ease-in-out;
   }
-  
+
+  .premium-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .premium-card:hover::before {
+    transform: scale(1.02);
+    opacity: 0.3;
+  }
+
   .btn-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
   }
@@ -145,14 +197,19 @@
 
   .designer-card {
     @apply relative rounded-xl overflow-hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.1),
+      0 0 20px rgba(155, 135, 245, 0.1),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .designer-card::before {
     content: '';
     @apply absolute inset-0 -z-10;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-    opacity: 0.05;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(217, 70, 239, 0.1) 100%);
+    mask: linear-gradient(black, transparent);
   }
 
   .designer-card::after {
@@ -161,6 +218,33 @@
     background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
     opacity: 0.1;
     border-radius: 0 0 0 100%;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .designer-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.15),
+      0 0 30px rgba(155, 135, 245, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes patternMove {
+  0% {
+    background-position: 0 0, 20px 0, 20px -20px, 0 20px;
+  }
+  100% {
+    background-position: 40px 40px, 60px 40px, 60px 20px, 40px 60px;
+  }
+}
+
+@keyframes floatingCircles {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-20px) scale(1.1);
   }
 }
 
