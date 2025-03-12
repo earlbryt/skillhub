@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, Users, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AnimatedBlob from './ui/animated-blob';
 
 export interface WorkshopProps {
   id: string;
@@ -28,11 +29,30 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
   return (
     <div 
       className={cn(
-        "designer-card overflow-hidden bg-white/80 backdrop-blur-sm transition-all duration-300 shadow-xl hover:shadow-2xl",
+        "designer-card relative overflow-hidden bg-white/80 backdrop-blur-sm transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1",
         isFeatured && "md:col-span-2 md:flex",
         className
       )}
     >
+      {/* Animated background blob for featured workshops */}
+      {isFeatured && (
+        <div className="absolute inset-0 overflow-hidden opacity-40 pointer-events-none">
+          <AnimatedBlob 
+            color="bg-primary" 
+            position="top-0 right-0" 
+            size="w-64 h-64" 
+            opacity="opacity-10" 
+          />
+          <AnimatedBlob 
+            color="bg-secondary" 
+            position="bottom-0 left-0" 
+            size="w-64 h-64" 
+            opacity="opacity-10" 
+            delay="4s"
+          />
+        </div>
+      )}
+
       <div className={cn("relative overflow-hidden", isFeatured ? "md:w-1/2" : "h-56")}>
         <img 
           src={image} 
@@ -49,9 +69,10 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
         </Badge>
         {isFeatured && (
           <Badge 
-            className="absolute top-4 right-4 bg-secondary hover:bg-secondary text-white shadow-md"
+            variant="outline"
+            className="absolute top-4 right-4 bg-secondary/90 hover:bg-secondary text-white shadow-md border-0 flex items-center gap-1"
           >
-            Featured
+            <Sparkles size={14} className="mr-1" /> Featured
           </Badge>
         )}
         
@@ -63,7 +84,7 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
         </div>
       </div>
       
-      <div className={cn("p-5", isFeatured && "md:w-1/2 md:p-6")}>
+      <div className={cn("p-5 relative", isFeatured && "md:w-1/2 md:p-6")}>
         <h3 className={cn("font-bold hidden md:block", isFeatured ? "text-2xl mb-3 gradient-heading" : "text-xl mb-2")}>
           {title}
         </h3>
@@ -86,7 +107,7 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
         </div>
         
         {/* Capacity bar */}
-        <div className="mb-4 bg-muted/30 p-3 rounded-lg">
+        <div className="mb-4 bg-white/50 p-3 rounded-lg backdrop-blur-sm border border-white/20">
           <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
             <div 
               className={cn(
@@ -109,7 +130,7 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
             </Link>
           </Button>
           
-          <Button asChild variant="ghost" size="sm" className="bg-white/50 hover:bg-white/80">
+          <Button asChild variant="ghost" size="sm" className="backdrop-blur-sm bg-white/50 hover:bg-white/80">
             <Link to={`/workshops/${id}`} className="text-primary">
               Details
             </Link>
