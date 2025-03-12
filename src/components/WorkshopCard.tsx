@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Users, ArrowRight, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import AnimatedBlob from './ui/animated-blob';
 
 export interface WorkshopProps {
   id: string;
@@ -19,7 +18,7 @@ export interface WorkshopProps {
   isFeatured?: boolean;
 }
 
-const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, className?: string }) => {
+const WorkshopCard = ({ workshop, className, style }: { workshop: WorkshopProps, className?: string, style?: React.CSSProperties }) => {
   const { id, title, category, date, time, capacity, enrolled, image, isFeatured } = workshop;
   
   // Calculate capacity percentage
@@ -29,54 +28,34 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
   return (
     <div 
       className={cn(
-        "designer-card relative overflow-hidden bg-white/80 backdrop-blur-sm transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1",
+        "relative overflow-hidden bg-white/95 shadow-md hover:shadow-lg transition-all duration-300",
         isFeatured && "md:col-span-2 md:flex",
         className
       )}
+      style={style}
     >
-      {/* Animated background blob for featured workshops */}
-      {isFeatured && (
-        <div className="absolute inset-0 overflow-hidden opacity-40 pointer-events-none">
-          <AnimatedBlob 
-            color="bg-primary" 
-            position="top-0 right-0" 
-            size="w-64 h-64" 
-            opacity="opacity-10" 
-          />
-          <AnimatedBlob 
-            color="bg-secondary" 
-            position="bottom-0 left-0" 
-            size="w-64 h-64" 
-            opacity="opacity-10" 
-            delay="4s"
-          />
-        </div>
-      )}
-
       <div className={cn("relative overflow-hidden", isFeatured ? "md:w-1/2" : "h-56")}>
         <img 
           src={image} 
           alt={title} 
-          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-500"
         />
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
         
         <Badge 
-          className="absolute top-4 left-4 bg-accent hover:bg-accent text-white shadow-md"
+          className="absolute top-4 left-4 bg-primary hover:bg-primary text-white"
         >
           {category}
         </Badge>
         {isFeatured && (
           <Badge 
             variant="outline"
-            className="absolute top-4 right-4 bg-secondary/90 hover:bg-secondary text-white shadow-md border-0 flex items-center gap-1"
+            className="absolute top-4 right-4 bg-secondary/90 hover:bg-secondary text-white border-0 flex items-center gap-1"
           >
-            <Sparkles size={14} className="mr-1" /> Featured
+            Featured
           </Badge>
         )}
         
-        {/* Title on image for mobile view */}
         <div className="absolute bottom-0 left-0 w-full p-4 md:hidden">
           <h3 className="text-xl font-bold text-white drop-shadow-lg">
             {title}
@@ -85,34 +64,33 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
       </div>
       
       <div className={cn("p-5 relative", isFeatured && "md:w-1/2 md:p-6")}>
-        <h3 className={cn("font-bold hidden md:block", isFeatured ? "text-2xl mb-3 gradient-heading" : "text-xl mb-2")}>
+        <h3 className={cn("font-bold hidden md:block", isFeatured ? "text-2xl mb-3" : "text-xl mb-2")}>
           {title}
         </h3>
         
         <div className="flex flex-wrap gap-y-2 mb-4 text-sm text-foreground/70">
-          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-full">
+          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-md">
             <Calendar size={16} className="mr-1 text-primary" />
             <span>{date}</span>
           </div>
           
-          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-full">
+          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-md">
             <Clock size={16} className="mr-1 text-primary" />
             <span>{time}</span>
           </div>
           
-          <div className="flex items-center bg-primary/5 px-2 py-1 rounded-full">
+          <div className="flex items-center bg-primary/5 px-2 py-1 rounded-md">
             <Users size={16} className="mr-1 text-primary" />
             <span>{enrolled} / {capacity}</span>
           </div>
         </div>
         
-        {/* Capacity bar */}
-        <div className="mb-4 bg-white/50 p-3 rounded-lg backdrop-blur-sm border border-white/20">
-          <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
+        <div className="mb-4 bg-white/80 p-3 rounded-md border border-border">
+          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full rounded-full",
-                isAlmostFull ? "bg-gradient-to-r from-yellow-400 to-secondary" : "bg-gradient-to-r from-primary to-accent"
+                isAlmostFull ? "bg-amber-500" : "bg-primary"
               )}
               style={{ width: `${capacityPercentage}%` }}
             ></div>
@@ -124,13 +102,13 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
         </div>
         
         <div className="flex justify-between items-center">
-          <Button asChild variant="default" className="gap-1 btn-hover bg-gradient-to-r from-primary to-accent shadow-md hover:shadow-lg">
+          <Button asChild variant="default" className="gap-1">
             <Link to={`/register?workshop=${id}`}>
               Register <ArrowRight size={16} />
             </Link>
           </Button>
           
-          <Button asChild variant="ghost" size="sm" className="backdrop-blur-sm bg-white/50 hover:bg-white/80">
+          <Button asChild variant="ghost" size="sm">
             <Link to={`/workshops/${id}`} className="text-primary">
               Details
             </Link>

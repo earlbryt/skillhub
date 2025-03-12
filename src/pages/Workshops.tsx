@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,6 @@ import WorkshopCard from '@/components/WorkshopCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Search, Filter, BookOpen, Calendar, MapPin, ChevronDown } from 'lucide-react';
-import AnimatedBlob from '@/components/ui/animated-blob';
-import FloatingBadge from '@/components/ui/floating-badge';
 import StatCard from '@/components/ui/stat-card';
 import { cn } from '@/lib/utils';
 
@@ -98,51 +97,11 @@ const Workshops = () => {
   
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="absolute inset-0 overflow-hidden -z-10 pointer-events-none">
-        <AnimatedBlob 
-          color="bg-primary" 
-          position="top-0 right-0 -translate-y-1/2 translate-x-1/2" 
-          size="w-[40rem] h-[40rem]" 
-          opacity="opacity-10" 
-        />
-        <AnimatedBlob 
-          color="bg-secondary" 
-          position="bottom-0 left-0 translate-y-1/2 -translate-x-1/2" 
-          size="w-[30rem] h-[30rem]" 
-          opacity="opacity-10" 
-          delay="4s"
-        />
-        <AnimatedBlob 
-          color="bg-accent" 
-          position="bottom-0 right-0 translate-y-1/4 translate-x-1/4" 
-          size="w-[25rem] h-[25rem]" 
-          opacity="opacity-5" 
-          delay="2s"
-        />
-      </div>
-      
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-12 relative">
-          {/* Floating badges */}
-          <FloatingBadge 
-            icon={BookOpen} 
-            text="Hands-on Learning" 
-            position="-top-2 lg:-top-6 left-4 lg:left-20 md:block"
-            rotate="rotate-[-2deg]"
-          />
-          
-          <FloatingBadge 
-            icon={Calendar} 
-            text="Flexible Scheduling" 
-            position="-bottom-2 lg:-bottom-6 right-4 lg:right-20 md:block"
-            rotate="rotate-[2deg]"
-            gradient="from-secondary via-accent to-primary"
-          />
-          
-          <h1 className="text-4xl md:text-5xl font-bold gradient-heading mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
             Discover & Join Workshops
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -159,13 +118,12 @@ const Workshops = () => {
               label={stat.label}
               icon={stat.icon}
               className="animate-fade-in"
-              gradient={index === 1 ? "from-secondary via-accent to-primary" : undefined}
             />
           ))}
         </div>
         
         {/* Search and Filter */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg mb-8">
+        <div className="bg-white rounded-md p-4 border shadow-sm mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -185,8 +143,8 @@ const Workshops = () => {
                   variant={selectedCategory === category ? "default" : "outline"}
                   onClick={() => setSelectedCategory(category)}
                   className={cn(
-                    "rounded-full",
-                    selectedCategory === category && "bg-gradient-to-r from-primary to-accent text-white"
+                    "rounded-md",
+                    selectedCategory === category && "bg-primary text-white"
                   )}
                   size="sm"
                 >
@@ -226,7 +184,7 @@ const Workshops = () => {
               <WorkshopCard
                 key={workshop.id}
                 workshop={workshop}
-                className="animate-fade-in"
+                className="animate-fade-in rounded-md"
                 style={{ animationDelay: `${index * 0.1}s` }}
               />
             ))
@@ -252,16 +210,16 @@ const Workshops = () => {
         </div>
         
         {/* Call to action */}
-        <div className="bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 rounded-xl p-8 border border-white/30 backdrop-blur-sm shadow-lg text-center mb-12">
+        <div className="bg-muted rounded-md p-8 border shadow-sm text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Don't see what you're looking for?</h2>
           <p className="text-foreground/70 max-w-2xl mx-auto mb-6">
             We're constantly adding new workshops based on student requests and industry trends.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="default" className="btn-hover bg-gradient-to-r from-primary to-accent shadow-md hover:shadow-lg">
+            <Button variant="default">
               Request a Topic
             </Button>
-            <Button variant="outline" className="backdrop-blur-sm bg-white/50 hover:bg-white/80">
+            <Button variant="outline">
               Browse All Categories
             </Button>
           </div>
