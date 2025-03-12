@@ -20,7 +20,13 @@ export interface WorkshopProps {
   isFeatured?: boolean;
 }
 
-const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, className?: string }) => {
+interface WorkshopCardProps {
+  workshop: WorkshopProps;
+  className?: string;
+  style?: React.CSSProperties; // Add style prop to interface
+}
+
+const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
   const { id, title, category, date, time, capacity, enrolled, image, isFeatured } = workshop;
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -59,6 +65,7 @@ const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, classN
         isFeatured && "md:col-span-2 md:flex",
         className
       )}
+      style={style} // Add style prop to component
     >
       <div className={cn("relative overflow-hidden rounded-t-lg", 
         isFeatured ? "md:w-2/5 md:rounded-l-lg md:rounded-tr-none" : "h-48"
