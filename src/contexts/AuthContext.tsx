@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -9,6 +10,7 @@ type Profile = {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -36,11 +38,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await (supabase
-        .from('profiles' as any)
+      // Using any here to avoid type issues with the database schema
+      // In a real app, you'd want to define proper types that match your database
+      const { data, error } = await supabase
+        .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single());
+        .single();
         
       if (error) {
         console.error('Error fetching profile:', error);

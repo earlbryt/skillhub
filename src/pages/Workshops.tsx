@@ -1,274 +1,352 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Search, 
+  Filter, 
+  Calendar,
+  GraduationCap
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import WorkshopCard from '@/components/WorkshopCard';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Search, Filter, BookOpen, Calendar, MapPin, ChevronDown } from 'lucide-react';
-import AnimatedBlob from '@/components/ui/animated-blob';
-import FloatingBadge from '@/components/ui/floating-badge';
-import StatCard from '@/components/ui/stat-card';
-import { cn } from '@/lib/utils';
+import ChatbotAssistant from '@/components/ChatbotAssistant';
+import WorkshopCard, { WorkshopProps } from '@/components/WorkshopCard';
 
-// Mock data for workshops
-const MOCK_WORKSHOPS = [
+// Workshop data
+const WORKSHOPS: WorkshopProps[] = [
   {
-    id: "1",
+    id: "web-dev-1",
     title: "Web Development Fundamentals",
-    category: "Programming",
-    date: "March 15, 2024",
+    category: "Coding",
+    date: "June 15, 2023",
     time: "10:00 AM - 2:00 PM",
     capacity: 30,
-    enrolled: 25,
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    enrolled: 24,
+    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80",
     isFeatured: true
   },
   {
-    id: "2",
-    title: "Digital Marketing Masterclass",
-    category: "Marketing",
-    date: "March 20, 2024",
-    time: "2:00 PM - 6:00 PM",
-    capacity: 25,
-    enrolled: 15,
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-  },
-  {
-    id: "3",
-    title: "UI/UX Design Workshop",
+    id: "ui-design-1",
+    title: "UI/UX Design Principles",
     category: "Design",
-    date: "March 25, 2024",
+    date: "June 18, 2023",
     time: "1:00 PM - 5:00 PM",
-    capacity: 20,
-    enrolled: 18,
-    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6"
+    capacity: 25,
+    enrolled: 22,
+    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true
   },
   {
-    id: "4",
+    id: "data-1",
     title: "Data Science Essentials",
     category: "Data",
-    date: "April 5, 2024",
+    date: "June 20, 2023",
     time: "9:00 AM - 3:00 PM",
-    capacity: 22,
-    enrolled: 17,
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475"
+    capacity: 20,
+    enrolled: 12,
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: "5",
-    title: "Blockchain Technology Introduction",
-    category: "Technology",
-    date: "April 12, 2024",
-    time: "1:00 PM - 4:00 PM",
-    capacity: 18,
-    enrolled: 5,
-    image: "https://images.unsplash.com/photo-1639762681057-408e52192e55"
-  },
-  {
-    id: "6",
-    title: "Artificial Intelligence Applications",
-    category: "Technology",
-    date: "April 15, 2024",
-    time: "10:00 AM - 3:00 PM",
+    id: "mobile-1",
+    title: "Mobile App Development",
+    category: "Coding",
+    date: "June 22, 2023",
+    time: "10:00 AM - 4:00 PM",
     capacity: 25,
-    enrolled: 20,
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e"
+    enrolled: 15,
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "ai-1",
+    title: "AI & Machine Learning",
+    category: "Technology",
+    date: "June 25, 2023",
+    time: "9:00 AM - 2:00 PM",
+    capacity: 20,
+    enrolled: 18,
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "web-dev-2",
+    title: "Full-Stack Development",
+    category: "Coding",
+    date: "July 5, 2023",
+    time: "10:00 AM - 4:00 PM",
+    capacity: 25,
+    enrolled: 10,
+    image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "design-1",
+    title: "Graphic Design Masterclass",
+    category: "Design",
+    date: "July 10, 2023",
+    time: "1:00 PM - 5:00 PM",
+    capacity: 20,
+    enrolled: 8,
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "digital-1",
+    title: "Digital Marketing Strategies",
+    category: "Marketing",
+    date: "July 15, 2023",
+    time: "9:00 AM - 1:00 PM",
+    capacity: 30,
+    enrolled: 18,
+    image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80"
   }
 ];
 
-// Statistics for display
-const STATS = [
-  { value: "25+", label: "Upcoming Workshops", icon: <Calendar className="h-5 w-5 text-primary" /> },
-  { value: "1200+", label: "Students Enrolled", icon: <BookOpen className="h-5 w-5 text-primary" /> },
-  { value: "12", label: "Venues", icon: <MapPin className="h-5 w-5 text-primary" /> },
-];
+// Available categories
+const CATEGORIES = [...new Set(WORKSHOPS.map(workshop => workshop.category))];
 
-// Categories for filter
-const CATEGORIES = ["All", "Programming", "Design", "Marketing", "Technology", "Data"];
+// Date options
+const DATES = [
+  { label: "All Dates", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "This Week", value: "week" },
+  { label: "This Month", value: "month" }
+];
 
 const Workshops = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<string>('all');
+  const [availability, setAvailability] = useState<string>('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  // Filter workshops by search and category
-  const filteredWorkshops = MOCK_WORKSHOPS.filter(workshop => {
-    const matchesSearch = workshop.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || workshop.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  // Filter workshops based on search and filters
+  const filteredWorkshops = WORKSHOPS.filter(workshop => {
+    // Search filter
+    const matchesSearch = workshop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          workshop.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Category filter
+    const matchesCategory = selectedCategory === 'all' || workshop.category === selectedCategory;
+    
+    // Date filter - simplified for demo
+    const matchesDate = selectedDate === 'all';
+    
+    // Availability filter
+    const availabilityRatio = workshop.enrolled / workshop.capacity;
+    const matchesAvailability = 
+      availability === 'all' ||
+      (availability === 'available' && availabilityRatio < 1) ||
+      (availability === 'almostFull' && availabilityRatio >= 0.8 && availabilityRatio < 1) ||
+      (availability === 'full' && availabilityRatio >= 1);
+    
+    return matchesSearch && matchesCategory && matchesDate && matchesAvailability;
   });
   
+  // Featured workshops - first 2 workshops
+  const featuredWorkshops = filteredWorkshops.filter(workshop => workshop.isFeatured);
+  
+  // Regular workshops - exclude featured workshops
+  const regularWorkshops = filteredWorkshops.filter(workshop => !workshop.isFeatured);
+  
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="absolute inset-0 overflow-hidden -z-10 pointer-events-none">
-        <AnimatedBlob 
-          color="bg-primary" 
-          position="top-0 right-0 -translate-y-1/2 translate-x-1/2" 
-          size="w-[40rem] h-[40rem]" 
-          opacity="opacity-10" 
-        />
-        <AnimatedBlob 
-          color="bg-secondary" 
-          position="bottom-0 left-0 translate-y-1/2 -translate-x-1/2" 
-          size="w-[30rem] h-[30rem]" 
-          opacity="opacity-10" 
-          delay="4s"
-        />
-        <AnimatedBlob 
-          color="bg-accent" 
-          position="bottom-0 right-0 translate-y-1/4 translate-x-1/4" 
-          size="w-[25rem] h-[25rem]" 
-          opacity="opacity-5" 
-          delay="2s"
-        />
-      </div>
-      
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 relative z-10">
-        <div className="text-center mb-12 relative">
-          {/* Floating badges */}
-          <FloatingBadge 
-            icon={BookOpen} 
-            text="Hands-on Learning" 
-            position="-top-2 lg:-top-6 left-4 lg:left-20 md:block"
-            rotate="rotate-[-2deg]"
-          />
+      <main className="flex-grow py-10">
+        <div className="container mx-auto px-4">
+          <div className="mb-10">
+            <h1 className="text-3xl font-bold mb-2">Upcoming Workshops</h1>
+            <p className="text-muted-foreground max-w-2xl">
+              Browse our catalog of professional workshops designed to help you advance your career and learn new skills.
+            </p>
+          </div>
           
-          <FloatingBadge 
-            icon={Calendar} 
-            text="Flexible Scheduling" 
-            position="-bottom-2 lg:-bottom-6 right-4 lg:right-20 md:block"
-            rotate="rotate-[2deg]"
-            gradient="from-secondary via-accent to-primary"
-          />
-          
-          <h1 className="text-4xl md:text-5xl font-bold gradient-heading mb-4">
-            Discover & Join Workshops
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Find hands-on workshops led by industry experts and enhance your skills in just a few clicks
-          </p>
-        </div>
-        
-        {/* Stats section */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {STATS.map((stat, index) => (
-            <StatCard
-              key={index}
-              value={stat.value}
-              label={stat.label}
-              icon={stat.icon}
-              className="animate-fade-in"
-              gradient={index === 1 ? "from-secondary via-accent to-primary" : undefined}
-            />
-          ))}
-        </div>
-        
-        {/* Search and Filter */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/30 shadow-lg mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search workshops by title, category, or skills..."
-                className="pl-10 bg-white/70"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Search and filters */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search workshops by title or category..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(category => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(category)}
-                  className={cn(
-                    "rounded-full",
-                    selectedCategory === category && "bg-gradient-to-r from-primary to-accent text-white"
-                  )}
-                  size="sm"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-            
-            <Button variant="outline" className="gap-2 whitespace-nowrap md:self-stretch">
-              <Filter size={16} />
-              More Filters
-              <ChevronDown size={14} />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Results information */}
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-foreground/70">
-            Showing <span className="font-medium text-foreground">{filteredWorkshops.length}</span> workshops
-          </p>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-foreground/70">Sort by:</span>
-            <select className="bg-white/70 border border-input rounded-md h-9 px-3 py-1 text-sm">
-              <option>Date (Soonest)</option>
-              <option>Popularity</option>
-              <option>Availability</option>
-            </select>
-          </div>
-        </div>
-        
-        {/* Workshops Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredWorkshops.length > 0 ? (
-            filteredWorkshops.map((workshop, index) => (
-              <WorkshopCard
-                key={workshop.id}
-                workshop={workshop}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="text-3xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No workshops found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filters to find what you're looking for.
-              </p>
+            <div className="flex gap-2">
               <Button 
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                }}
-                variant="outline"
-                className="mt-4"
+                variant="outline" 
+                className="w-full md:w-auto flex items-center gap-2"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
               >
-                Clear filters
+                <Filter size={16} />
+                <span>Filters</span>
+                {(selectedCategory !== 'all' || selectedDate !== 'all' || availability !== 'all') && (
+                  <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                    {(selectedCategory !== 'all' ? 1 : 0) + 
+                     (selectedDate !== 'all' ? 1 : 0) + 
+                     (availability !== 'all' ? 1 : 0)}
+                  </Badge>
+                )}
               </Button>
+              
+              <Select 
+                value={selectedDate} 
+                onValueChange={setSelectedDate}
+              >
+                <SelectTrigger className="w-full md:w-auto">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} />
+                    <SelectValue placeholder="All Dates" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {DATES.map((date) => (
+                    <SelectItem key={date.value} value={date.value}>
+                      {date.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {isFilterOpen && (
+            <div className="bg-card p-4 rounded-lg shadow-sm border border-border mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Category</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    All Categories
+                  </Badge>
+                  {CATEGORIES.map(category => (
+                    <Badge
+                      key={category}
+                      variant={selectedCategory === category ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => setSelectedCategory(category)}
+                    >
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium mb-2">Availability</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant={availability === 'all' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setAvailability('all')}
+                  >
+                    All
+                  </Badge>
+                  <Badge
+                    variant={availability === 'available' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setAvailability('available')}
+                  >
+                    Available
+                  </Badge>
+                  <Badge
+                    variant={availability === 'almostFull' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setAvailability('almostFull')}
+                  >
+                    Almost Full
+                  </Badge>
+                  <Badge
+                    variant={availability === 'full' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setAvailability('full')}
+                  >
+                    Full
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="flex items-end">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    setSelectedDate('all');
+                    setAvailability('all');
+                    setSearchQuery('');
+                  }}
+                >
+                  Reset Filters
+                </Button>
+              </div>
             </div>
           )}
-        </div>
-        
-        {/* Call to action */}
-        <div className="bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 rounded-xl p-8 border border-white/30 backdrop-blur-sm shadow-lg text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Don't see what you're looking for?</h2>
-          <p className="text-foreground/70 max-w-2xl mx-auto mb-6">
-            We're constantly adding new workshops based on student requests and industry trends.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="default" className="btn-hover bg-gradient-to-r from-primary to-accent shadow-md hover:shadow-lg">
-              Request a Topic
-            </Button>
-            <Button variant="outline" className="backdrop-blur-sm bg-white/50 hover:bg-white/80">
-              Browse All Categories
-            </Button>
+          
+          {/* Workshops grid */}
+          <div className="space-y-10">
+            {/* Featured Workshops */}
+            {featuredWorkshops.length > 0 && (
+              <div>
+                <div className="flex items-center mb-4">
+                  <GraduationCap className="text-primary mr-2 h-5 w-5" />
+                  <h2 className="text-xl font-semibold">Featured Workshops</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {featuredWorkshops.map(workshop => (
+                    <WorkshopCard key={workshop.id} workshop={workshop} />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* All Workshops */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">All Workshops</h2>
+              {regularWorkshops.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {regularWorkshops.map(workshop => (
+                    <WorkshopCard key={workshop.id} workshop={workshop} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-muted/20 rounded-lg">
+                  <div className="text-muted-foreground mb-4">
+                    <Search className="h-12 w-12 mx-auto mb-2" />
+                    <p>No workshops found matching your criteria.</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setSelectedDate('all');
+                      setAvailability('all');
+                      setSearchQuery('');
+                    }}
+                  >
+                    Reset Filters
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
       
       <Footer />
+      <ChatbotAssistant />
     </div>
   );
 };
