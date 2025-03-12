@@ -1,12 +1,11 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, Clock, Users, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import AnimatedBlob from './ui/animated-blob';
 
 export interface WorkshopProps {
   id: string;
@@ -22,120 +21,118 @@ export interface WorkshopProps {
 
 const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, className?: string }) => {
   const { id, title, category, date, time, capacity, enrolled, image, isFeatured } = workshop;
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   
   // Calculate capacity percentage
   const capacityPercentage = Math.round((enrolled / capacity) * 100);
   const isAlmostFull = capacityPercentage >= 80;
-
-  // Quick register function
-  const handleQuickRegister = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to register for workshops",
-        variant: "destructive",
-      });
-      navigate('/login?redirect=workshops');
-      return;
-    }
-
-    // In a real app, this would make an API call to register
-    toast({
-      title: "Registration Successful!",
-      description: `You're now registered for ${title}`,
-    });
-  };
   
   return (
     <div 
       className={cn(
-        "group bg-white border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-300",
+        "designer-card relative overflow-hidden bg-white/80 backdrop-blur-sm transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1",
         isFeatured && "md:col-span-2 md:flex",
         className
       )}
     >
-      <div className={cn("relative overflow-hidden rounded-t-lg", 
-        isFeatured ? "md:w-2/5 md:rounded-l-lg md:rounded-tr-none" : "h-48"
-      )}>
+      {/* Animated background blob for featured workshops */}
+      {isFeatured && (
+        <div className="absolute inset-0 overflow-hidden opacity-40 pointer-events-none">
+          <AnimatedBlob 
+            color="bg-primary" 
+            position="top-0 right-0" 
+            size="w-64 h-64" 
+            opacity="opacity-10" 
+          />
+          <AnimatedBlob 
+            color="bg-secondary" 
+            position="bottom-0 left-0" 
+            size="w-64 h-64" 
+            opacity="opacity-10" 
+            delay="4s"
+          />
+        </div>
+      )}
+
+      <div className={cn("relative overflow-hidden", isFeatured ? "md:w-1/2" : "h-56")}>
         <img 
           src={image} 
           alt={title} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
         
         <Badge 
-          className="absolute top-3 left-3 bg-primary text-white"
+          className="absolute top-4 left-4 bg-accent hover:bg-accent text-white shadow-md"
         >
           {category}
         </Badge>
+        {isFeatured && (
+          <Badge 
+            variant="outline"
+            className="absolute top-4 right-4 bg-secondary/90 hover:bg-secondary text-white shadow-md border-0 flex items-center gap-1"
+          >
+            <Sparkles size={14} className="mr-1" /> Featured
+          </Badge>
+        )}
         
-        <div className="absolute bottom-0 left-0 w-full p-3">
-          <h3 className="text-lg font-semibold text-white drop-shadow-lg md:hidden">
+        {/* Title on image for mobile view */}
+        <div className="absolute bottom-0 left-0 w-full p-4 md:hidden">
+          <h3 className="text-xl font-bold text-white drop-shadow-lg">
             {title}
           </h3>
         </div>
       </div>
       
-      <div className={cn("p-4 flex flex-col justify-between", isFeatured && "md:w-3/5")}>
-        <div>
-          <h3 className={cn("font-semibold hidden md:block", isFeatured ? "text-xl mb-2" : "text-lg mb-1")}>
-            {title}
-          </h3>
+      <div className={cn("p-5 relative", isFeatured && "md:w-1/2 md:p-6")}>
+        <h3 className={cn("font-bold hidden md:block", isFeatured ? "text-2xl mb-3 gradient-heading" : "text-xl mb-2")}>
+          {title}
+        </h3>
+        
+        <div className="flex flex-wrap gap-y-2 mb-4 text-sm text-foreground/70">
+          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-full">
+            <Calendar size={16} className="mr-1 text-primary" />
+            <span>{date}</span>
+          </div>
           
-          <div className="flex flex-wrap gap-2 mb-3 text-sm text-muted-foreground">
-            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
-              <Calendar size={14} className="mr-1 text-primary" />
-              <span>{date}</span>
-            </div>
-            
-            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
-              <Clock size={14} className="mr-1 text-primary" />
-              <span>{time}</span>
-            </div>
-            
-            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
-              <Users size={14} className="mr-1 text-primary" />
-              <span>{enrolled} / {capacity}</span>
-            </div>
+          <div className="flex items-center mr-4 bg-primary/5 px-2 py-1 rounded-full">
+            <Clock size={16} className="mr-1 text-primary" />
+            <span>{time}</span>
+          </div>
+          
+          <div className="flex items-center bg-primary/5 px-2 py-1 rounded-full">
+            <Users size={16} className="mr-1 text-primary" />
+            <span>{enrolled} / {capacity}</span>
           </div>
         </div>
         
         {/* Capacity bar */}
-        <div className="mb-3">
-          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+        <div className="mb-4 bg-white/50 p-3 rounded-lg backdrop-blur-sm border border-white/20">
+          <div className="h-2 w-full bg-white/50 rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full rounded-full",
-                isAlmostFull ? "bg-secondary" : "bg-primary"
+                isAlmostFull ? "bg-gradient-to-r from-yellow-400 to-secondary" : "bg-gradient-to-r from-primary to-accent"
               )}
               style={{ width: `${capacityPercentage}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-xs mt-1 text-muted-foreground">
-            <span>{isAlmostFull ? "Almost full!" : `${capacityPercentage}% full`}</span>
-            <span>{capacity - enrolled} spots left</span>
+          <div className="flex justify-between text-xs mt-1">
+            <span className="font-semibold">{isAlmostFull ? "Almost full!" : `${capacityPercentage}% full`}</span>
+            <span className="font-semibold">{capacity - enrolled} spots left</span>
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <Button 
-            variant="default" 
-            className="flex-1"
-            onClick={handleQuickRegister}
-          >
-            Quick Register
+        <div className="flex justify-between items-center">
+          <Button asChild variant="default" className="gap-1 btn-hover bg-gradient-to-r from-primary to-accent shadow-md hover:shadow-lg">
+            <Link to={`/register?workshop=${id}`}>
+              Register <ArrowRight size={16} />
+            </Link>
           </Button>
           
-          <Button asChild variant="outline" size="icon">
-            <Link to={`/workshops/${id}`}>
-              <ArrowRight size={16} />
+          <Button asChild variant="ghost" size="sm" className="backdrop-blur-sm bg-white/50 hover:bg-white/80">
+            <Link to={`/workshops/${id}`} className="text-primary">
+              Details
             </Link>
           </Button>
         </div>
