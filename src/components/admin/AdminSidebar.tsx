@@ -11,20 +11,22 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from '@/components/ui/sidebar';
-import { Users, BookOpen, Home } from 'lucide-react';
+import { Users, BookOpen, Home, Settings, BarChart } from 'lucide-react';
 
 const AdminSidebar = () => {
   const menuItems = [
     { title: 'Overview', path: '/admin', icon: Home },
     { title: 'Workshops', path: '/admin/workshops', icon: BookOpen },
     { title: 'Users', path: '/admin/users', icon: Users },
+    { title: 'Analytics', path: '/admin/analytics', icon: BarChart },
+    { title: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground text-sm font-medium">Admin Panel</SidebarGroupLabel>
+          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -33,16 +35,12 @@ const AdminSidebar = () => {
                     <NavLink 
                       to={item.path} 
                       className={({ isActive }) => 
-                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                          isActive 
-                            ? 'bg-primary/10 text-primary' 
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                        }`
+                        isActive ? 'text-primary' : 'text-foreground'
                       }
                       end={item.path === '/admin'}
                     >
                       <item.icon size={18} />
-                      <span className="font-medium">{item.title}</span>
+                      <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
