@@ -20,13 +20,7 @@ export interface WorkshopProps {
   isFeatured?: boolean;
 }
 
-interface WorkshopCardProps {
-  workshop: WorkshopProps;
-  className?: string;
-  style?: React.CSSProperties; // Add style prop to interface
-}
-
-const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
+const WorkshopCard = ({ workshop, className }: { workshop: WorkshopProps, className?: string }) => {
   const { id, title, category, date, time, capacity, enrolled, image, isFeatured } = workshop;
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -36,7 +30,7 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
   const capacityPercentage = Math.round((enrolled / capacity) * 100);
   const isAlmostFull = capacityPercentage >= 80;
 
-  // Quick register function - simplified for one-click registration
+  // Quick register function
   const handleQuickRegister = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -52,18 +46,19 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
     }
 
     // In a real app, this would make an API call to register
-    // For now, just navigate directly to confirmation 
-    navigate(`/register?workshop=${id}`);
+    toast({
+      title: "Registration Successful!",
+      description: `You're now registered for ${title}`,
+    });
   };
   
   return (
     <div 
       className={cn(
-        "group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300",
+        "group bg-white border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-300",
         isFeatured && "md:col-span-2 md:flex",
         className
       )}
-      style={style}
     >
       <div className={cn("relative overflow-hidden rounded-t-lg", 
         isFeatured ? "md:w-2/5 md:rounded-l-lg md:rounded-tr-none" : "h-48"
@@ -76,7 +71,7 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         
         <Badge 
-          className="absolute top-3 left-3 bg-blue-700 text-white"
+          className="absolute top-3 left-3 bg-primary text-white"
         >
           {category}
         </Badge>
@@ -94,19 +89,19 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
             {title}
           </h3>
           
-          <div className="flex flex-wrap gap-2 mb-3 text-sm text-gray-600">
-            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
-              <Calendar size={14} className="mr-1 text-blue-700" />
+          <div className="flex flex-wrap gap-2 mb-3 text-sm text-muted-foreground">
+            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
+              <Calendar size={14} className="mr-1 text-primary" />
               <span>{date}</span>
             </div>
             
-            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
-              <Clock size={14} className="mr-1 text-blue-700" />
+            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
+              <Clock size={14} className="mr-1 text-primary" />
               <span>{time}</span>
             </div>
             
-            <div className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
-              <Users size={14} className="mr-1 text-blue-700" />
+            <div className="flex items-center bg-muted/50 px-2 py-1 rounded-full">
+              <Users size={14} className="mr-1 text-primary" />
               <span>{enrolled} / {capacity}</span>
             </div>
           </div>
@@ -114,16 +109,16 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
         
         {/* Capacity bar */}
         <div className="mb-3">
-          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full rounded-full",
-                isAlmostFull ? "bg-amber-500" : "bg-blue-700"
+                isAlmostFull ? "bg-secondary" : "bg-primary"
               )}
               style={{ width: `${capacityPercentage}%` }}
             ></div>
           </div>
-          <div className="flex justify-between text-xs mt-1 text-gray-600">
+          <div className="flex justify-between text-xs mt-1 text-muted-foreground">
             <span>{isAlmostFull ? "Almost full!" : `${capacityPercentage}% full`}</span>
             <span>{capacity - enrolled} spots left</span>
           </div>
@@ -132,13 +127,13 @@ const WorkshopCard = ({ workshop, className, style }: WorkshopCardProps) => {
         <div className="flex gap-2">
           <Button 
             variant="default" 
-            className="flex-1 bg-blue-700 hover:bg-blue-800"
+            className="flex-1"
             onClick={handleQuickRegister}
           >
-            Register Now
+            Quick Register
           </Button>
           
-          <Button asChild variant="outline" size="icon" className="border-gray-300 text-gray-700">
+          <Button asChild variant="outline" size="icon">
             <Link to={`/workshops/${id}`}>
               <ArrowRight size={16} />
             </Link>

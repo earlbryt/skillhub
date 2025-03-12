@@ -155,14 +155,14 @@ const Workshops = () => {
   const regularWorkshops = filteredWorkshops.filter(workshop => !workshop.isFeatured);
   
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-grow py-10">
         <div className="container mx-auto px-4">
           <div className="mb-10">
             <h1 className="text-3xl font-bold mb-2">Upcoming Workshops</h1>
-            <p className="text-gray-600 max-w-2xl">
+            <p className="text-muted-foreground max-w-2xl">
               Browse our catalog of professional workshops designed to help you advance your career and learn new skills.
             </p>
           </div>
@@ -171,10 +171,10 @@ const Workshops = () => {
             {/* Search and filters */}
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Search workshops by title or category..."
-                  className="pl-10 border-gray-300"
+                  className="pl-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -184,13 +184,13 @@ const Workshops = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                className="w-full md:w-auto flex items-center gap-2 border-gray-300 text-gray-700"
+                className="w-full md:w-auto flex items-center gap-2"
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
               >
                 <Filter size={16} />
                 <span>Filters</span>
                 {(selectedCategory !== 'all' || selectedDate !== 'all' || availability !== 'all') && (
-                  <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center rounded-full bg-blue-100 text-blue-800">
+                  <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center rounded-full">
                     {(selectedCategory !== 'all' ? 1 : 0) + 
                      (selectedDate !== 'all' ? 1 : 0) + 
                      (availability !== 'all' ? 1 : 0)}
@@ -202,7 +202,7 @@ const Workshops = () => {
                 value={selectedDate} 
                 onValueChange={setSelectedDate}
               >
-                <SelectTrigger className="w-full md:w-auto border-gray-300">
+                <SelectTrigger className="w-full md:w-auto">
                   <div className="flex items-center gap-2">
                     <Calendar size={16} />
                     <SelectValue placeholder="All Dates" />
@@ -220,13 +220,13 @@ const Workshops = () => {
           </div>
           
           {isFilterOpen && (
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-card p-4 rounded-lg shadow-sm border border-border mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <h3 className="text-sm font-medium mb-2">Category</h3>
                 <div className="flex flex-wrap gap-2">
                   <Badge
                     variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                    className={`cursor-pointer ${selectedCategory === 'all' ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                    className="cursor-pointer"
                     onClick={() => setSelectedCategory('all')}
                   >
                     All Categories
@@ -235,7 +235,7 @@ const Workshops = () => {
                     <Badge
                       key={category}
                       variant={selectedCategory === category ? 'default' : 'outline'}
-                      className={`cursor-pointer ${selectedCategory === category ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                      className="cursor-pointer"
                       onClick={() => setSelectedCategory(category)}
                     >
                       {category}
@@ -249,28 +249,28 @@ const Workshops = () => {
                 <div className="flex flex-wrap gap-2">
                   <Badge
                     variant={availability === 'all' ? 'default' : 'outline'}
-                    className={`cursor-pointer ${availability === 'all' ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                    className="cursor-pointer"
                     onClick={() => setAvailability('all')}
                   >
                     All
                   </Badge>
                   <Badge
                     variant={availability === 'available' ? 'default' : 'outline'}
-                    className={`cursor-pointer ${availability === 'available' ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                    className="cursor-pointer"
                     onClick={() => setAvailability('available')}
                   >
                     Available
                   </Badge>
                   <Badge
                     variant={availability === 'almostFull' ? 'default' : 'outline'}
-                    className={`cursor-pointer ${availability === 'almostFull' ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                    className="cursor-pointer"
                     onClick={() => setAvailability('almostFull')}
                   >
                     Almost Full
                   </Badge>
                   <Badge
                     variant={availability === 'full' ? 'default' : 'outline'}
-                    className={`cursor-pointer ${availability === 'full' ? 'bg-blue-700' : 'text-gray-700 border-gray-300'}`}
+                    className="cursor-pointer"
                     onClick={() => setAvailability('full')}
                   >
                     Full
@@ -282,7 +282,6 @@ const Workshops = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="text-gray-700 border-gray-300"
                   onClick={() => {
                     setSelectedCategory('all');
                     setSelectedDate('all');
@@ -302,17 +301,12 @@ const Workshops = () => {
             {featuredWorkshops.length > 0 && (
               <div>
                 <div className="flex items-center mb-4">
-                  <GraduationCap className="text-blue-700 mr-2 h-5 w-5" />
+                  <GraduationCap className="text-primary mr-2 h-5 w-5" />
                   <h2 className="text-xl font-semibold">Featured Workshops</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {featuredWorkshops.map(workshop => (
-                    <WorkshopCard 
-                      key={workshop.id} 
-                      workshop={workshop} 
-                      className="bg-white" 
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}
-                    />
+                    <WorkshopCard key={workshop.id} workshop={workshop} />
                   ))}
                 </div>
               </div>
@@ -324,23 +318,17 @@ const Workshops = () => {
               {regularWorkshops.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {regularWorkshops.map(workshop => (
-                    <WorkshopCard 
-                      key={workshop.id} 
-                      workshop={workshop} 
-                      className="bg-white" 
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}
-                    />
+                    <WorkshopCard key={workshop.id} workshop={workshop} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-gray-100 rounded-lg">
-                  <div className="text-gray-500 mb-4">
+                <div className="text-center py-12 bg-muted/20 rounded-lg">
+                  <div className="text-muted-foreground mb-4">
                     <Search className="h-12 w-12 mx-auto mb-2" />
                     <p>No workshops found matching your criteria.</p>
                   </div>
                   <Button 
                     variant="outline" 
-                    className="text-gray-700 border-gray-300"
                     onClick={() => {
                       setSelectedCategory('all');
                       setSelectedDate('all');
