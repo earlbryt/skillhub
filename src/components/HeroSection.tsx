@@ -108,7 +108,7 @@ export const HeroSection: React.FC = () => {
                         </p>
                       </div>
                       <span className="text-primary font-medium">
-                        ${workshop.price?.toFixed(2)}
+                        GHC {workshop.price?.toFixed(2)}
                       </span>
                     </div>
                   </Link>
