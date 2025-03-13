@@ -1,229 +1,178 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import WorkshopCard from '@/components/WorkshopCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { getWorkshops } from '@/services/workshopService';
+import { Workshop } from '@/types/supabase';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Search, Filter, BookOpen, Calendar, MapPin, ChevronDown } from 'lucide-react';
-import StatCard from '@/components/ui/stat-card';
-import { cn } from '@/lib/utils';
-
-// Mock data for workshops
-const MOCK_WORKSHOPS = [
-  {
-    id: "1",
-    title: "Web Development Fundamentals",
-    category: "Programming",
-    date: "March 15, 2024",
-    time: "10:00 AM - 2:00 PM",
-    capacity: 30,
-    enrolled: 25,
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    isFeatured: true
-  },
-  {
-    id: "2",
-    title: "Digital Marketing Masterclass",
-    category: "Marketing",
-    date: "March 20, 2024",
-    time: "2:00 PM - 6:00 PM",
-    capacity: 25,
-    enrolled: 15,
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-  },
-  {
-    id: "3",
-    title: "UI/UX Design Workshop",
-    category: "Design",
-    date: "March 25, 2024",
-    time: "1:00 PM - 5:00 PM",
-    capacity: 20,
-    enrolled: 18,
-    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6"
-  },
-  {
-    id: "4",
-    title: "Data Science Essentials",
-    category: "Data",
-    date: "April 5, 2024",
-    time: "9:00 AM - 3:00 PM",
-    capacity: 22,
-    enrolled: 17,
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475"
-  },
-  {
-    id: "5",
-    title: "Blockchain Technology Introduction",
-    category: "Technology",
-    date: "April 12, 2024",
-    time: "1:00 PM - 4:00 PM",
-    capacity: 18,
-    enrolled: 5,
-    image: "https://images.unsplash.com/photo-1639762681057-408e52192e55"
-  },
-  {
-    id: "6",
-    title: "Artificial Intelligence Applications",
-    category: "Technology",
-    date: "April 15, 2024",
-    time: "10:00 AM - 3:00 PM",
-    capacity: 25,
-    enrolled: 20,
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e"
-  }
-];
-
-// Statistics for display
-const STATS = [
-  { value: "25+", label: "Upcoming Workshops", icon: <Calendar className="h-5 w-5 text-primary" /> },
-  { value: "1200+", label: "Students Enrolled", icon: <BookOpen className="h-5 w-5 text-primary" /> },
-  { value: "12", label: "Venues", icon: <MapPin className="h-5 w-5 text-primary" /> },
-];
-
-// Categories for filter
-const CATEGORIES = ["All", "Programming", "Design", "Marketing", "Technology", "Data"];
+import { Search, Calendar, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
 
 const Workshops = () => {
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  
-  // Filter workshops by search and category
-  const filteredWorkshops = MOCK_WORKSHOPS.filter(workshop => {
-    const matchesSearch = workshop.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || workshop.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-  
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      try {
+        const data = await getWorkshops();
+        setWorkshops(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load workshops. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkshops();
+  }, [toast]);
+
+  const filteredWorkshops = workshops.filter(workshop => 
+    workshop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    workshop.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    workshop.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy • h:mm a');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 relative z-10">
-        <div className="text-center mb-12 relative">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
-            Discover & Join Workshops
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-primary mb-4">
+            Available Workshops
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Find hands-on workshops led by industry experts and enhance your skills in just a few clicks
+            Browse our upcoming workshops and register to secure your spot
           </p>
         </div>
         
-        {/* Stats section */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {STATS.map((stat, index) => (
-            <StatCard
-              key={index}
-              value={stat.value}
-              label={stat.label}
-              icon={stat.icon}
-              className="animate-fade-in"
+        {/* Search bar */}
+        <div className="max-w-3xl mx-auto mb-10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search workshops by title, description, or location..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          ))}
+          </div>
         </div>
         
-        {/* Search and Filter */}
-        <div className="bg-white rounded-md p-4 border shadow-sm mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search workshops by title, category, or skills..."
-                className="pl-10 bg-white/70"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(category => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(category)}
-                  className={cn(
-                    "rounded-md",
-                    selectedCategory === category && "bg-primary text-white"
+        {/* Workshops grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <div className="h-48 bg-muted">
+                  <Skeleton className="h-full w-full" />
+                </div>
+                <CardHeader>
+                  <Skeleton className="h-8 w-3/4 mb-2" />
+                  <Skeleton className="h-6 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-2" />
+                  <Skeleton className="h-4 w-4/6" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-10 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : filteredWorkshops.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredWorkshops.map((workshop) => (
+              <Card key={workshop.id} className="overflow-hidden flex flex-col h-full">
+                <div className="h-48 bg-muted overflow-hidden">
+                  {workshop.image_url ? (
+                    <img
+                      src={workshop.image_url}
+                      alt={workshop.title}
+                      className="h-full w-full object-cover transition-transform hover:scale-105"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-muted">
+                      <span className="text-muted-foreground">No image available</span>
+                    </div>
                   )}
-                  size="sm"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-            
-            <Button variant="outline" className="gap-2 whitespace-nowrap md:self-stretch">
-              <Filter size={16} />
-              More Filters
-              <ChevronDown size={14} />
+                </div>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{workshop.title}</CardTitle>
+                    {workshop.price > 0 ? (
+                      <Badge variant="secondary">${workshop.price.toFixed(2)}</Badge>
+                    ) : (
+                      <Badge>Free</Badge>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground flex items-center mt-2">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDate(workshop.start_date)}
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground flex items-center mt-1">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {workshop.location}
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="flex-grow">
+                  <p className="text-muted-foreground line-clamp-3">
+                    {workshop.description}
+                  </p>
+                </CardContent>
+                
+                <CardFooter className="pt-0">
+                  <Link to={`/workshops/${workshop.id}`} className="w-full">
+                    <Button variant="default" className="w-full">
+                      View Details & Register
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold mb-2">No workshops found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your search to find what you're looking for.
+            </p>
+            <Button 
+              onClick={() => setSearchQuery('')}
+              variant="outline" 
+              className="mt-4"
+            >
+              Clear search
             </Button>
           </div>
-        </div>
-        
-        {/* Results information */}
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-foreground/70">
-            Showing <span className="font-medium text-foreground">{filteredWorkshops.length}</span> workshops
-          </p>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-foreground/70">Sort by:</span>
-            <select className="bg-white/70 border border-input rounded-md h-9 px-3 py-1 text-sm">
-              <option>Date (Soonest)</option>
-              <option>Popularity</option>
-              <option>Availability</option>
-            </select>
-          </div>
-        </div>
-        
-        {/* Workshops Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredWorkshops.length > 0 ? (
-            filteredWorkshops.map((workshop, index) => (
-              <WorkshopCard
-                key={workshop.id}
-                workshop={workshop}
-                className="animate-fade-in rounded-md"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="text-3xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No workshops found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filters to find what you're looking for.
-              </p>
-              <Button 
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                }}
-                variant="outline"
-                className="mt-4"
-              >
-                Clear filters
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        {/* Call to action */}
-        <div className="bg-muted rounded-md p-8 border shadow-sm text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Don't see what you're looking for?</h2>
-          <p className="text-foreground/70 max-w-2xl mx-auto mb-6">
-            We're constantly adding new workshops based on student requests and industry trends.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="default">
-              Request a Topic
-            </Button>
-            <Button variant="outline">
-              Browse All Categories
-            </Button>
-          </div>
-        </div>
+        )}
       </main>
       
       <Footer />

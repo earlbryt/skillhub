@@ -20,8 +20,6 @@ import AdminOverview from "./pages/admin/Overview";
 import AdminWorkshops from "./pages/admin/Workshops";
 import AdminWorkshopAttendees from "./pages/admin/WorkshopAttendees";
 import AdminUsers from "./pages/admin/Users";
-import AdminAnalytics from "./pages/admin/Analytics";
-import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -47,8 +45,6 @@ const App = () => (
               <Route path="workshops" element={<AdminWorkshops />} />
               <Route path="workshops/:id/attendees" element={<AdminWorkshopAttendees />} />
               <Route path="users" element={<AdminUsers />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="settings" element={<AdminSettings />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

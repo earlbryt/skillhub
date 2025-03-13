@@ -9,7 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      registrations: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          workshop_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          workshop_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshops: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          image_url: string | null
+          instructor: string | null
+          location: string
+          price: number | null
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          location: string
+          price?: number | null
+          start_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          location?: string
+          price?: number | null
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
