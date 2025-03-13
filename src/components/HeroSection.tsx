@@ -27,7 +27,7 @@ const HeroSection = () => {
         const deltaX = (x - centerX) / 8;
         const deltaY = (y - centerY) / 8;
 
-        button.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        (button as HTMLElement).style.transform = `translate(${deltaX}px, ${deltaY}px)`;
       });
 
       button.addEventListener('mouseleave', () => {
