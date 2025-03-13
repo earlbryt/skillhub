@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,48 +7,51 @@ import { Label } from '@/components/ui/label';
 import { User, Mail, Phone, Calendar, Award, Share2, Copy, ChevronRight, Bell, Settings } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { getMyRegistrations } from '@/services/workshopService';
-import { format } from 'date-fns';
-import { Registration, Workshop } from '@/types/supabase';
+
+// Mock data for user profile
+const MOCK_USER = {
+  id: "1",
+  name: "Alex Johnson",
+  email: "alex.johnson@example.com",
+  phone: "+1 (555) 123-4567",
+  profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+  joinedDate: "March 2023",
+  referralCode: "ALEXJ2023",
+  referrals: 8,
+  rewards: 3
+};
+
+// Mock data for registered workshops
+const MOCK_REGISTERED_WORKSHOPS = [
+  {
+    id: "1",
+    title: "Web Development Fundamentals",
+    date: "April 15, 2024",
+    time: "10:00 AM - 2:00 PM",
+    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    status: "upcoming"
+  },
+  {
+    id: "3",
+    title: "UI/UX Design Workshop",
+    date: "April 25, 2024",
+    time: "1:00 PM - 5:00 PM",
+    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+    status: "upcoming"
+  },
+  {
+    id: "2",
+    title: "Digital Marketing Masterclass",
+    date: "March 20, 2024",
+    time: "2:00 PM - 6:00 PM",
+    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    status: "completed"
+  }
+];
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('workshops');
-  const [registeredWorkshops, setRegisteredWorkshops] = useState<(Registration & { workshop: Workshop })[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user, profile } = useAuth();
-
-  useEffect(() => {
-    const fetchRegistrations = async () => {
-      if (user?.id) {
-        try {
-          const registrations = await getMyRegistrations(user.id);
-          setRegisteredWorkshops(registrations);
-        } catch (error) {
-          console.error('Error fetching registrations:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load your registered workshops.",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
-
-    fetchRegistrations();
-  }, [user, toast]);
-
-  // Mock data for user profile that will display if no actual data exists
-  const MOCK_USER = {
-    referralCode: "USER2024",
-    referrals: 0,
-    rewards: 0
-  };
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(MOCK_USER.referralCode);
@@ -57,15 +60,6 @@ const UserProfile = () => {
       description: "Referral code copied to clipboard.",
     });
   };
-
-  // Separate upcoming and past workshops
-  const upcomingWorkshops = registeredWorkshops.filter(
-    reg => new Date(reg.workshop.start_date) > new Date()
-  );
-  
-  const pastWorkshops = registeredWorkshops.filter(
-    reg => new Date(reg.workshop.start_date) <= new Date()
-  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,27 +73,23 @@ const UserProfile = () => {
               <div className="flex flex-col items-center text-center mb-6">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/20">
                   <img 
-                    src={profile?.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
-                    alt={profile?.first_name || "User"} 
+                    src={MOCK_USER.profileImage} 
+                    alt={MOCK_USER.name} 
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h2 className="text-2xl font-bold">
-                  {profile ? `${profile.first_name || ''} ${profile.last_name || ''}` : 'Guest User'}
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Member since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </p>
+                <h2 className="text-2xl font-bold">{MOCK_USER.name}</h2>
+                <p className="text-muted-foreground text-sm">Member since {MOCK_USER.joinedDate}</p>
               </div>
               
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-muted-foreground" />
-                  <span>{user?.email || 'No email available'}</span>
+                  <span>{MOCK_USER.email}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-muted-foreground" />
-                  <span>Not provided</span>
+                  <span>{MOCK_USER.phone}</span>
                 </div>
               </div>
               
@@ -191,113 +181,88 @@ const UserProfile = () => {
                   </Button>
                 </div>
                 
-                {loading ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, index) => (
-                      <div key={index} className="h-32 bg-card animate-pulse rounded-lg"></div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-muted-foreground">Upcoming Workshops</h3>
-                    
-                    {upcomingWorkshops.length > 0 ? (
-                      upcomingWorkshops.map(registration => (
-                        <div key={registration.id} className="bg-card rounded-lg shadow-md overflow-hidden hover-scale">
-                          <div className="flex flex-col md:flex-row">
-                            <div className="md:w-1/3 h-32 md:h-auto">
-                              <img 
-                                src={registration.workshop.image_url || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80"} 
-                                alt={registration.workshop.title}
-                                className="w-full h-full object-cover"
-                              />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-muted-foreground">Upcoming Workshops</h3>
+                  
+                  {MOCK_REGISTERED_WORKSHOPS
+                    .filter(workshop => workshop.status === 'upcoming')
+                    .map(workshop => (
+                      <div key={workshop.id} className="bg-card rounded-lg shadow-md overflow-hidden hover-scale">
+                        <div className="flex flex-col md:flex-row">
+                          <div className="md:w-1/3 h-32 md:h-auto">
+                            <img 
+                              src={workshop.image} 
+                              alt={workshop.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                              <h4 className="text-xl font-semibold mb-2">{workshop.title}</h4>
+                              <div className="flex items-center text-sm text-muted-foreground mb-4">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                <span>{workshop.date} • {workshop.time}</span>
+                              </div>
                             </div>
-                            <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
-                              <div>
-                                <h4 className="text-xl font-semibold mb-2">{registration.workshop.title}</h4>
-                                <div className="flex items-center text-sm text-muted-foreground mb-4">
-                                  <Calendar className="mr-2 h-4 w-4" />
-                                  <span>
-                                    {format(new Date(registration.workshop.start_date), 'MMMM d, yyyy')} • 
-                                    {format(new Date(registration.workshop.start_date), 'h:mm a')} - 
-                                    {format(new Date(registration.workshop.end_date), 'h:mm a')}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex justify-between items-center mt-4">
-                                <Button variant="outline" size="sm">
-                                  Add to Calendar
-                                </Button>
-                                <Button variant="ghost" size="sm" asChild>
-                                  <Link to={`/workshops/${registration.workshop.id}`}>
-                                    View Details
-                                    <ChevronRight className="ml-1 h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </div>
+                            <div className="flex justify-between items-center mt-4">
+                              <Button variant="outline" size="sm">
+                                Add to Calendar
+                              </Button>
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link to={`/workshops/${workshop.id}`}>
+                                  View Details
+                                  <ChevronRight className="ml-1 h-4 w-4" />
+                                </Link>
+                              </Button>
                             </div>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">No upcoming workshops registered.</p>
-                        <Button className="mt-4" asChild>
-                          <Link to="/workshops">Browse Workshops</Link>
-                        </Button>
                       </div>
-                    )}
-                    
-                    <h3 className="text-lg font-semibold text-muted-foreground mt-8">Past Workshops</h3>
-                    
-                    {pastWorkshops.length > 0 ? (
-                      pastWorkshops.map(registration => (
-                        <div key={registration.id} className="bg-card rounded-lg shadow-md overflow-hidden opacity-75">
-                          <div className="flex flex-col md:flex-row">
-                            <div className="md:w-1/3 h-32 md:h-auto">
-                              <img 
-                                src={registration.workshop.image_url || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=800&q=80"} 
-                                alt={registration.workshop.title}
-                                className="w-full h-full object-cover grayscale"
-                              />
+                    ))
+                  }
+                  
+                  <h3 className="text-lg font-semibold text-muted-foreground mt-8">Past Workshops</h3>
+                  
+                  {MOCK_REGISTERED_WORKSHOPS
+                    .filter(workshop => workshop.status === 'completed')
+                    .map(workshop => (
+                      <div key={workshop.id} className="bg-card rounded-lg shadow-md overflow-hidden opacity-75">
+                        <div className="flex flex-col md:flex-row">
+                          <div className="md:w-1/3 h-32 md:h-auto">
+                            <img 
+                              src={workshop.image} 
+                              alt={workshop.title}
+                              className="w-full h-full object-cover grayscale"
+                            />
+                          </div>
+                          <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-xl font-semibold mb-2">{workshop.title}</h4>
+                                <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-full">Completed</span>
+                              </div>
+                              <div className="flex items-center text-sm text-muted-foreground mb-4">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                <span>{workshop.date} • {workshop.time}</span>
+                              </div>
                             </div>
-                            <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
-                              <div>
-                                <div className="flex justify-between items-center">
-                                  <h4 className="text-xl font-semibold mb-2">{registration.workshop.title}</h4>
-                                  <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-full">Completed</span>
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground mb-4">
-                                  <Calendar className="mr-2 h-4 w-4" />
-                                  <span>
-                                    {format(new Date(registration.workshop.start_date), 'MMMM d, yyyy')} • 
-                                    {format(new Date(registration.workshop.start_date), 'h:mm a')} - 
-                                    {format(new Date(registration.workshop.end_date), 'h:mm a')}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex justify-between items-center mt-4">
-                                <Button variant="outline" size="sm">
-                                  Get Certificate
-                                </Button>
-                                <Button variant="ghost" size="sm" asChild>
-                                  <Link to={`/workshops/${registration.workshop.id}`}>
-                                    View Details
-                                    <ChevronRight className="ml-1 h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </div>
+                            <div className="flex justify-between items-center mt-4">
+                              <Button variant="outline" size="sm">
+                                Get Certificate
+                              </Button>
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link to={`/workshops/${workshop.id}`}>
+                                  View Details
+                                  <ChevronRight className="ml-1 h-4 w-4" />
+                                </Link>
+                              </Button>
                             </div>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">No past workshops recorded.</p>
                       </div>
-                    )}
-                  </div>
-                )}
+                    ))
+                  }
+                </div>
               </div>
             )}
             

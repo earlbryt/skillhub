@@ -34,10 +34,7 @@ export const getWorkshopById = async (id: string): Promise<Workshop | null> => {
 export const registerForWorkshop = async (registration: Omit<Registration, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<{ success: boolean; error?: any; data?: any }> => {
   const { data, error } = await supabase
     .from('registrations')
-    .insert([{
-      ...registration,
-      status: 'confirmed'
-    }])
+    .insert([registration])
     .select()
     .single();
     
@@ -80,33 +77,4 @@ export const getMyRegistrations = async (userId?: string): Promise<(Registration
   }
   
   return data || [];
-};
-
-export const getWorkshopRegistrationsCount = async (workshopId: string): Promise<number> => {
-  const { count, error } = await supabase
-    .from('registrations')
-    .select('*', { count: 'exact', head: true })
-    .eq('workshop_id', workshopId);
-    
-  if (error) {
-    console.error('Error counting registrations:', error);
-    return 0;
-  }
-  
-  return count || 0;
-};
-
-export const checkUserRegisteredForWorkshop = async (workshopId: string, userId: string): Promise<boolean> => {
-  const { count, error } = await supabase
-    .from('registrations')
-    .select('*', { count: 'exact', head: true })
-    .eq('workshop_id', workshopId)
-    .eq('user_id', userId);
-    
-  if (error) {
-    console.error('Error checking user registration:', error);
-    return false;
-  }
-  
-  return (count || 0) > 0;
 };
