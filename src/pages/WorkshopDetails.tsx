@@ -1,198 +1,198 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { getWorkshopById, getRegistrationsForWorkshop, registerForWorkshop } from '@/services/workshopService';
+import { useToast } from '@/hooks/use-toast';
+import { getWorkshopById, registerForWorkshop, getWorkshopRegistrationsCount, checkUserRegisteredForWorkshop } from '@/services/workshopService';
 import { Workshop } from '@/types/supabase';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Calendar, Clock, MapPin, Users, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import Footer from '@/components/Footer';
+import { z } from 'zod';
+
+const registrationSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().optional(),
+});
+
+type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 const WorkshopDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [workshop, setWorkshop] = useState<Workshop | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [registrationCount, setRegistrationCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [registrationsCount, setRegistrationsCount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  const [formData, setFormData] = useState<RegistrationFormData>({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: ''
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
-  // Form state
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.first_name || '');
-      setLastName(profile.last_name || '');
-      if (user) {
-        setEmail(user.email || '');
-      }
-    }
-  }, [profile, user]);
+    if (!id) return;
 
-  useEffect(() => {
     const fetchWorkshopDetails = async () => {
-      if (!id) return;
-      
       try {
-        const workshopData = await getWorkshopById(id);
-        if (workshopData) {
-          setWorkshop(workshopData);
-          
-          // Get registration count
-          const registrations = await getRegistrationsForWorkshop(id);
-          setRegistrationCount(registrations.length);
-        } else {
-          toast({
-            title: "Not Found",
-            description: "The workshop you're looking for doesn't exist.",
-            variant: "destructive",
-          });
+        const workshop = await getWorkshopById(id);
+        
+        if (!workshop) {
           navigate('/workshops');
+          toast({
+            title: "Workshop not found",
+            description: "The workshop you're looking for doesn't exist.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        setWorkshop(workshop);
+
+        // Get registrations count
+        const count = await getWorkshopRegistrationsCount(id);
+        setRegistrationsCount(count);
+
+        // Check if user is already registered
+        if (user?.id) {
+          const isRegistered = await checkUserRegisteredForWorkshop(id, user.id);
+          setAlreadyRegistered(isRegistered);
         }
       } catch (error) {
+        console.error("Error fetching workshop details:", error);
         toast({
           title: "Error",
           description: "Failed to load workshop details. Please try again later.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchWorkshopDetails();
-  }, [id, navigate, toast]);
+  }, [id, user?.id, navigate, toast]);
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMMM d, yyyy');
-    } catch (e) {
-      return dateString;
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        email: user?.email || '',
+      }));
+    }
+  }, [profile, user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (formErrors[name]) {
+      setFormErrors(prev => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
     }
   };
 
-  const formatTime = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'h:mm a');
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  const getDateRangeText = () => {
-    if (!workshop) return '';
-    
-    const startDate = formatDate(workshop.start_date);
-    const endDate = formatDate(workshop.end_date);
-    
-    return startDate === endDate 
-      ? startDate
-      : `${startDate} - ${formatDate(workshop.end_date)}`;
-  };
-
-  const getTimeRangeText = () => {
-    if (!workshop) return '';
-    
-    return `${formatTime(workshop.start_date)} - ${formatTime(workshop.end_date)}`;
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!workshop) return;
-    
-    if (!firstName || !lastName || !email) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setSubmitting(true);
-    
     try {
+      const validationResult = registrationSchema.safeParse(formData);
+      
+      if (!validationResult.success) {
+        const errors: Record<string, string> = {};
+        validationResult.error.errors.forEach(err => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
+        });
+        setFormErrors(errors);
+        return;
+      }
+      
+      setIsSubmitting(true);
+      
+      if (!workshop) {
+        toast({
+          title: "Error",
+          description: "Workshop information is missing.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const { success, error } = await registerForWorkshop({
         workshop_id: workshop.id,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || null,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone || null,
         user_id: user?.id || null
       });
       
       if (success) {
         toast({
-          title: "Success!",
-          description: `You've successfully registered for "${workshop.title}".`,
+          title: "Registration Successful",
+          description: `You have successfully registered for ${workshop.title}.`,
         });
         
-        // Refresh registration count
-        const registrations = await getRegistrationsForWorkshop(workshop.id);
-        setRegistrationCount(registrations.length);
+        setRegistrationsCount(prev => prev + 1);
         
-        // Clear form if not logged in
+        if (user?.id) {
+          setAlreadyRegistered(true);
+        }
+        
         if (!user) {
-          setFirstName('');
-          setLastName('');
-          setEmail('');
-          setPhone('');
+          setFormData({
+            first_name: '',
+            last_name: '',
+            email: '',
+            phone: ''
+          });
         }
       } else {
         toast({
-          title: "Registration failed",
-          description: error?.message || "There was an error with your registration. Please try again.",
-          variant: "destructive",
+          title: "Registration Failed",
+          description: error?.message || "An unexpected error occurred. Please try again.",
+          variant: "destructive"
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to register for the workshop. Please try again later.",
-        variant: "destructive",
+        title: "Registration Failed",
+        description: error?.message || "An unexpected error occurred. Please try again.",
+        variant: "destructive"
       });
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <Skeleton className="h-12 w-3/4 mb-6" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-2">
-                <Skeleton className="h-72 w-full mb-6" />
-                <Skeleton className="h-6 w-full mb-3" />
-                <Skeleton className="h-6 w-full mb-3" />
-                <Skeleton className="h-6 w-3/4 mb-6" />
-                <Skeleton className="h-64 w-full" />
-              </div>
-              <div>
-                <Skeleton className="h-96 w-full" />
-              </div>
-            </div>
+        <div className="container mx-auto py-12 px-4">
+          <div className="flex flex-col items-center justify-center h-64">
+            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-muted-foreground">Loading workshop details...</p>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     );
@@ -200,194 +200,237 @@ const WorkshopDetails = () => {
 
   if (!workshop) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="container mx-auto py-12 px-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Workshop Not Found</h2>
-            <p className="text-muted-foreground mb-6">
-              The workshop you're looking for doesn't exist or has been removed.
-            </p>
-            <Button onClick={() => navigate('/workshops')}>
-              Back to Workshops
+            <h1 className="text-2xl font-bold">Workshop Not Found</h1>
+            <p className="mt-2 text-muted-foreground">The workshop you're looking for doesn't exist or has been removed.</p>
+            <Button onClick={() => navigate('/workshops')} className="mt-6">
+              View All Workshops
             </Button>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     );
   }
 
-  const spotsRemaining = workshop.capacity - registrationCount;
-  const isFull = spotsRemaining <= 0;
+  const isWorkshopFull = workshop.capacity <= registrationsCount;
+  const isWorkshopInPast = new Date(workshop.end_date) < new Date();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-6">{workshop.title}</h1>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-2">
-              {/* Workshop image */}
+
+      <div className="container mx-auto py-12 px-4">
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-6">
+            <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
               {workshop.image_url ? (
-                <img
-                  src={workshop.image_url}
-                  alt={workshop.title}
-                  className="w-full h-auto rounded-lg mb-6 object-cover max-h-[400px]"
+                <img 
+                  src={workshop.image_url} 
+                  alt={workshop.title} 
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-72 bg-muted rounded-lg mb-6 flex items-center justify-center">
-                  <span className="text-muted-foreground">No image available</span>
+                <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  <p className="text-gray-500">No image available</p>
                 </div>
               )}
+            </div>
+
+            <div>
+              <h1 className="text-3xl font-bold">{workshop.title}</h1>
               
-              {/* Workshop details */}
-              <div className="flex flex-wrap gap-4 mb-6">
-                <div className="flex items-center text-muted-foreground">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  <span>{getDateRangeText()}</span>
-                </div>
-                
-                <div className="flex items-center text-muted-foreground">
-                  <Clock className="h-5 w-5 mr-2" />
-                  <span>{getTimeRangeText()}</span>
-                </div>
-                
-                <div className="flex items-center text-muted-foreground">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  <span>{workshop.location}</span>
-                </div>
-                
-                <div className="flex items-center text-muted-foreground">
-                  <Users className="h-5 w-5 mr-2" />
+              <div className="flex flex-wrap gap-y-4 mt-4">
+                <div className="flex items-center mr-6">
+                  <Calendar className="h-5 w-5 text-primary mr-2" />
                   <span>
-                    {isFull 
-                      ? "Fully booked" 
-                      : `${spotsRemaining} spot${spotsRemaining !== 1 ? 's' : ''} remaining`
-                    }
+                    {format(new Date(workshop.start_date), 'MMMM d, yyyy')}
                   </span>
                 </div>
                 
+                <div className="flex items-center mr-6">
+                  <Clock className="h-5 w-5 text-primary mr-2" />
+                  <span>
+                    {format(new Date(workshop.start_date), 'h:mm a')} - {format(new Date(workshop.end_date), 'h:mm a')}
+                  </span>
+                </div>
+                
+                <div className="flex items-center mr-6">
+                  <MapPin className="h-5 w-5 text-primary mr-2" />
+                  <span>{workshop.location}</span>
+                </div>
+                
+                <div className="flex items-center mr-6">
+                  <Users className="h-5 w-5 text-primary mr-2" />
+                  <span>{registrationsCount} / {workshop.capacity} registered</span>
+                </div>
+                
                 {workshop.instructor && (
-                  <div className="flex items-center text-muted-foreground">
-                    <User className="h-5 w-5 mr-2" />
+                  <div className="flex items-center mr-6">
+                    <User className="h-5 w-5 text-primary mr-2" />
                     <span>Instructor: {workshop.instructor}</span>
                   </div>
                 )}
                 
-                {workshop.price > 0 ? (
-                  <Badge variant="secondary" className="text-base px-3 py-1">
-                    ${workshop.price.toFixed(2)}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-base px-3 py-1 border-green-500 text-green-600">
-                    Free
-                  </Badge>
-                )}
-              </div>
-              
-              <Separator className="my-6" />
-              
-              {/* Workshop description */}
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">About This Workshop</h2>
-                <div className="prose max-w-none text-muted-foreground">
-                  <p className="whitespace-pre-line">{workshop.description}</p>
+                <div className="flex items-center">
+                  <DollarSign className="h-5 w-5 text-primary mr-2" />
+                  <span>{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</span>
                 </div>
               </div>
             </div>
-            
-            {/* Registration form */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-center">
-                    {isFull ? "Workshop Full" : "Register Now"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isFull ? (
-                    <div className="text-center">
-                      <p className="mb-4 text-muted-foreground">This workshop has reached its capacity.</p>
-                      <Button variant="outline" onClick={() => navigate('/workshops')}>
-                        Browse Other Workshops
-                      </Button>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleRegister}>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="firstName">First Name *</Label>
-                            <Input
-                              id="firstName"
-                              value={firstName}
-                              onChange={(e) => setFirstName(e.target.value)}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="lastName">Last Name *</Label>
-                            <Input
-                              id="lastName"
-                              value={lastName}
-                              onChange={(e) => setLastName(e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email Address *</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone Number (Optional)</Label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                          />
-                        </div>
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full"
-                          disabled={submitting || isFull}
-                        >
-                          {submitting ? "Registering..." : "Register for Workshop"}
-                        </Button>
-                        
-                        {!user && (
-                          <p className="text-xs text-muted-foreground text-center mt-2">
-                            Note: You're registering as a guest. <br />
-                            <a href="/login" className="text-primary hover:underline">Sign in</a> to track all your registrations.
-                          </p>
-                        )}
-                      </div>
-                    </form>
-                  )}
-                </CardContent>
-              </Card>
+
+            <div className="prose max-w-none">
+              <h2 className="text-xl font-bold">About this workshop</h2>
+              <p className="whitespace-pre-line">{workshop.description}</p>
+            </div>
+
+            <div className="md:hidden mt-8">
+              <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+                <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
+                
+                {renderRegistrationForm()}
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <div className="bg-card rounded-lg shadow-md p-6 border border-border sticky top-8">
+              <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
+              
+              {renderRegistrationForm()}
             </div>
           </div>
         </div>
-      </main>
-      
+      </div>
+
       <Footer />
     </div>
   );
+
+  function renderRegistrationForm() {
+    if (isWorkshopInPast) {
+      return (
+        <div className="bg-muted p-4 rounded-md">
+          <div className="flex items-center text-muted-foreground">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>This workshop has already ended.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (alreadyRegistered) {
+      return (
+        <div className="bg-green-50 p-4 rounded-md">
+          <div className="flex items-center text-green-700">
+            <AlertCircle className="h-5 w-5 mr-2 text-green-500" />
+            <p>You're already registered for this workshop!</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (isWorkshopFull) {
+      return (
+        <div className="bg-muted p-4 rounded-md">
+          <div className="flex items-center text-muted-foreground">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>This workshop is full. Please check back later or explore other workshops.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="first_name">First Name</Label>
+          <Input
+            id="first_name"
+            name="first_name"
+            value={formData.first_name}
+            onChange={handleInputChange}
+            required
+            disabled={isSubmitting}
+            aria-invalid={!!formErrors.first_name}
+          />
+          {formErrors.first_name && (
+            <p className="text-sm text-destructive">{formErrors.first_name}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="last_name">Last Name</Label>
+          <Input
+            id="last_name"
+            name="last_name"
+            value={formData.last_name}
+            onChange={handleInputChange}
+            required
+            disabled={isSubmitting}
+            aria-invalid={!!formErrors.last_name}
+          />
+          {formErrors.last_name && (
+            <p className="text-sm text-destructive">{formErrors.last_name}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            disabled={isSubmitting}
+            aria-invalid={!!formErrors.email}
+          />
+          {formErrors.email && (
+            <p className="text-sm text-destructive">{formErrors.email}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number (Optional)</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone || ''}
+            onChange={handleInputChange}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Registering...
+            </span>
+          ) : (
+            'Register Now'
+          )}
+        </Button>
+
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {workshop.capacity - registrationsCount} {workshop.capacity - registrationsCount === 1 ? 'spot' : 'spots'} remaining
+        </p>
+      </form>
+    );
+  }
 };
 
 export default WorkshopDetails;

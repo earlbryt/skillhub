@@ -125,7 +125,7 @@ const Workshops = () => {
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-xl">{workshop.title}</CardTitle>
                     {workshop.price > 0 ? (
-                      <Badge variant="secondary">${workshop.price.toFixed(2)}</Badge>
+                      <Badge variant="secondary">GH₵{workshop.price.toFixed(2)}</Badge>
                     ) : (
                       <Badge>Free</Badge>
                     )}
