@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, Calendar, Clock, Users, CheckCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import WorkshopCard, { WorkshopProps } from '@/components/WorkshopCard';
+import WorkshopCard from '@/components/WorkshopCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import CountdownTimer from '@/components/CountdownTimer';
 import ChatbotAssistant from '@/components/ChatbotAssistant';
@@ -16,7 +16,7 @@ import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const [featuredWorkshops, setFeaturedWorkshops] = useState<WorkshopProps[]>([]);
+  const [featuredWorkshops, setFeaturedWorkshops] = useState<Workshop[]>([]);
   const [upcomingWorkshop, setUpcomingWorkshop] = useState<Workshop | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -36,20 +36,9 @@ const Index = () => {
         const nextWorkshop = sortedWorkshops.find(w => new Date(w.start_date) > now) || sortedWorkshops[0];
         setUpcomingWorkshop(nextWorkshop);
 
-        // Convert workshops to WorkshopProps format
-        const formattedWorkshops = sortedWorkshops.slice(0, 5).map((workshop, index) => ({
-          id: workshop.id,
-          title: workshop.title,
-          category: workshop.instructor || 'Workshop',
-          date: format(new Date(workshop.start_date), 'MMMM d, yyyy'),
-          time: `${format(new Date(workshop.start_date), 'h:mm a')} - ${format(new Date(workshop.end_date), 'h:mm a')}`,
-          capacity: workshop.capacity,
-          enrolled: Math.floor(Math.random() * workshop.capacity), // This would be replaced with actual data in a real app
-          image: workshop.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80',
-          isFeatured: index < 2 // Make the first two workshops featured
-        }));
-
-        setFeaturedWorkshops(formattedWorkshops);
+        // Get workshops for the featured section
+        const featured = sortedWorkshops.slice(0, 5);
+        setFeaturedWorkshops(featured);
       } catch (error) {
         console.error('Error fetching workshops:', error);
         toast({
@@ -119,8 +108,21 @@ const Index = () => {
               </div>
             ) : featuredWorkshops.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredWorkshops.map((workshop) => (
-                  <WorkshopCard key={workshop.id} workshop={workshop} />
+                {featuredWorkshops.map((workshop, index) => (
+                  <WorkshopCard 
+                    key={workshop.id} 
+                    workshop={{
+                      id: workshop.id,
+                      title: workshop.title,
+                      category: workshop.instructor || 'Workshop',
+                      date: format(new Date(workshop.start_date), 'MMMM d, yyyy'),
+                      time: `${format(new Date(workshop.start_date), 'h:mm a')} - ${format(new Date(workshop.end_date), 'h:mm a')}`,
+                      capacity: workshop.capacity,
+                      enrolled: Math.floor(Math.random() * workshop.capacity), // This would be replaced with actual data in a real app
+                      image: workshop.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80',
+                      isFeatured: index < 2 // Make the first two workshops featured
+                    }}
+                  />
                 ))}
               </div>
             ) : (

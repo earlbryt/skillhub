@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -85,7 +84,6 @@ const WorkshopDetails = () => {
     fetchWorkshopDetails();
   }, [id, user?.id, navigate, toast]);
 
-  // Pre-fill the form with user data if available
   useEffect(() => {
     if (profile) {
       setFormData(prev => ({
@@ -101,7 +99,6 @@ const WorkshopDetails = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Clear error when user starts typing in a field
     if (formErrors[name]) {
       setFormErrors(prev => {
         const updated = { ...prev };
@@ -115,7 +112,6 @@ const WorkshopDetails = () => {
     e.preventDefault();
     
     try {
-      // Validate form data
       const validationResult = registrationSchema.safeParse(formData);
       
       if (!validationResult.success) {
@@ -155,15 +151,12 @@ const WorkshopDetails = () => {
           description: `You have successfully registered for ${workshop.title}.`,
         });
         
-        // Update registration count
         setRegistrationsCount(prev => prev + 1);
         
-        // Set as registered if user is logged in
         if (user?.id) {
           setAlreadyRegistered(true);
         }
         
-        // Clear form if not logged in
         if (!user) {
           setFormData({
             first_name: '',
@@ -232,7 +225,6 @@ const WorkshopDetails = () => {
 
       <div className="container mx-auto py-12 px-4">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Workshop Details */}
           <div className="md:col-span-2 space-y-6">
             <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
               {workshop.image_url ? (
@@ -285,7 +277,7 @@ const WorkshopDetails = () => {
                 
                 <div className="flex items-center">
                   <DollarSign className="h-5 w-5 text-primary mr-2" />
-                  <span>{workshop.price ? `$${workshop.price.toFixed(2)}` : 'Free'}</span>
+                  <span>{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</span>
                 </div>
               </div>
             </div>
@@ -295,7 +287,6 @@ const WorkshopDetails = () => {
               <p className="whitespace-pre-line">{workshop.description}</p>
             </div>
 
-            {/* Mobile registration form for small screens */}
             <div className="md:hidden mt-8">
               <div className="bg-card rounded-lg shadow-md p-6 border border-border">
                 <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
@@ -305,7 +296,6 @@ const WorkshopDetails = () => {
             </div>
           </div>
 
-          {/* Sidebar - Registration Form */}
           <div className="hidden md:block">
             <div className="bg-card rounded-lg shadow-md p-6 border border-border sticky top-8">
               <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
