@@ -1,224 +1,119 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from 'react';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, UserPlus, Mail, Edit, UserX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { Users as UsersIcon, Search, Calendar, Clock } from 'lucide-react';
 
-interface Workshop {
-  id: string;
-  title: string;
-  start_date: string;
-  end_date: string;
-}
+// Mock users data
+const mockUsers = [
+  { id: "1", name: "John Doe", email: "john.doe@example.com", role: "admin", status: "active", joinDate: "2023-12-15", workshops: 3 },
+  { id: "2", name: "Jane Smith", email: "jane.smith@example.com", role: "user", status: "active", joinDate: "2024-01-10", workshops: 2 },
+  { id: "3", name: "Michael Johnson", email: "michael.j@example.com", role: "user", status: "active", joinDate: "2024-01-20", workshops: 1 },
+  { id: "4", name: "Emily Wilson", email: "emily.w@example.com", role: "user", status: "inactive", joinDate: "2024-01-25", workshops: 0 },
+  { id: "5", name: "David Brown", email: "david.b@example.com", role: "user", status: "active", joinDate: "2024-02-05", workshops: 2 },
+  { id: "6", name: "Sarah Lee", email: "sarah.l@example.com", role: "user", status: "active", joinDate: "2024-02-10", workshops: 1 },
+  { id: "7", name: "Robert Taylor", email: "robert.t@example.com", role: "user", status: "pending", joinDate: "2024-02-15", workshops: 0 },
+  { id: "8", name: "Lisa Anderson", email: "lisa.a@example.com", role: "user", status: "active", joinDate: "2024-02-20", workshops: 1 },
+];
 
-interface Registration {
-  id: string;
-  workshop_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  created_at: string;
-  workshop: Workshop;
-}
-
-interface UserWithWorkshops {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  registrations: Registration[];
-}
-
-const AdminUsersPage = () => {
-  const [users, setUsers] = useState<UserWithWorkshops[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        
-        // Get all registrations with their related workshops
-        const { data: registrations, error: registrationsError } = await supabase
-          .from('registrations')
-          .select(`
-            id,
-            workshop_id,
-            first_name,
-            last_name,
-            email,
-            created_at,
-            workshop:workshops(
-              id,
-              title,
-              start_date,
-              end_date
-            )
-          `)
-          .order('created_at', { ascending: false });
-          
-        if (registrationsError) throw registrationsError;
-        
-        // Group registrations by email to get user data
-        const userMap = new Map<string, UserWithWorkshops>();
-        
-        registrations?.forEach(registration => {
-          const email = registration.email;
-          
-          if (!userMap.has(email)) {
-            userMap.set(email, {
-              id: registration.id, // Using registration ID as user ID for now
-              first_name: registration.first_name,
-              last_name: registration.last_name,
-              email: registration.email,
-              registrations: []
-            });
-          }
-          
-          const user = userMap.get(email);
-          if (user) {
-            user.registrations.push(registration);
-          }
-        });
-        
-        setUsers(Array.from(userMap.values()));
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        toast({
-          title: "Error loading users",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUsers();
-  }, [toast]);
-
-  // Filter users based on search term
-  const filteredUsers = users.filter(user => {
-    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
-    const email = user.email.toLowerCase();
-    const search = searchTerm.toLowerCase();
-    
-    return fullName.includes(search) || email.includes(search);
-  });
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM d, yyyy');
-  };
+const AdminUsers = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   
-  // Format time
-  const formatTime = (dateString: string) => {
-    return format(new Date(dateString), 'h:mm a');
-  };
+  // Filter users based on search query
+  const filteredUsers = mockUsers.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-slate-900">Users & Workshops</h2>
-        <p className="text-slate-500">View users and their workshop registrations</p>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Users</h2>
+        <Button className="gap-2">
+          <UserPlus size={16} /> Add User
+        </Button>
       </div>
       
-      {/* Search Bar */}
-      <div className="relative mb-6">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-slate-400" />
+      <Card className="mb-6">
+        <div className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search users..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          className="pl-10 w-full rounded-md border border-slate-200 py-2 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      </Card>
       
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-slate-600">Loading user data...</span>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <Card key={user.id} className="p-6 border border-slate-200 shadow-sm">
-                <div className="mb-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <UsersIcon className="h-5 w-5 text-blue-600" />
+      <Card>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Workshops</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.role === 'admin' ? 'secondary' : 'outline'}>
+                      {user.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={
+                      user.status === 'active' ? 'default' : 
+                      user.status === 'pending' ? 'secondary' : 'outline'
+                    }>
+                      {user.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(user.joinDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{user.workshops}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm">
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <UserX className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900">{user.first_name} {user.last_name}</h3>
-                      <p className="text-sm text-slate-500">{user.email}</p>
-                    </div>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">
-                    {user.registrations.length} Workshop{user.registrations.length !== 1 ? 's' : ''}
-                  </Badge>
-                </div>
-                
-                {user.registrations.length > 0 && (
-                  <div className="border rounded-md overflow-hidden">
-                    <table className="min-w-full divide-y divide-slate-200">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Workshop</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Registration Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-slate-200">
-                        {user.registrations.map((registration) => (
-                          <tr key={registration.id} className="hover:bg-slate-50">
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm font-medium text-slate-900">{registration.workshop?.title}</div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="flex items-center text-sm text-slate-500">
-                                <Calendar className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                                {formatDate(registration.workshop?.start_date)}
-                              </div>
-                              <div className="flex items-center text-sm text-slate-500">
-                                <Clock className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                                {formatTime(registration.workshop?.start_date)}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-slate-500">
-                                {formatDate(registration.created_at)}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Card>
-            ))
-          ) : (
-            <div className="text-center p-8 bg-slate-50 rounded-lg border border-slate-200">
-              <UsersIcon className="mx-auto h-12 w-12 text-slate-400" />
-              <h3 className="mt-2 text-lg font-medium text-slate-900">No users found</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                {searchTerm ? 'Try a different search term' : 'No users have registered for workshops yet'}
-              </p>
-            </div>
-          )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      )}
+      </Card>
     </div>
   );
 };
 
-export default AdminUsersPage;
+export default AdminUsers;
