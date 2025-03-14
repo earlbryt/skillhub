@@ -11,22 +11,20 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from '@/components/ui/sidebar';
-import { Users, BookOpen, Home, Settings, BarChart } from 'lucide-react';
+import { Users, BookOpen, LayoutDashboard } from 'lucide-react';
 
 const AdminSidebar = () => {
   const menuItems = [
-    { title: 'Overview', path: '/admin', icon: Home },
+    { title: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { title: 'Workshops', path: '/admin/workshops', icon: BookOpen },
     { title: 'Users', path: '/admin/users', icon: Users },
-    { title: 'Analytics', path: '/admin/analytics', icon: BarChart },
-    { title: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-slate-200 bg-slate-50">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-slate-500 font-medium">Admin Panel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -35,7 +33,7 @@ const AdminSidebar = () => {
                     <NavLink 
                       to={item.path} 
                       className={({ isActive }) => 
-                        isActive ? 'text-primary' : 'text-foreground'
+                        isActive ? 'text-indigo-700 bg-indigo-50 font-medium' : 'text-slate-700 hover:bg-slate-100'
                       }
                       end={item.path === '/admin'}
                     >

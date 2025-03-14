@@ -16,10 +16,10 @@ import UserProfile from "./pages/UserProfile";
 
 // Admin imports
 import AdminDashboard from "./pages/admin/Dashboard";
-import AdminOverview from "./pages/admin/Overview";
 import AdminWorkshops from "./pages/admin/Workshops";
 import AdminWorkshopAttendees from "./pages/admin/WorkshopAttendees";
 import AdminUsers from "./pages/admin/Users";
+import AdminOverview from "./pages/admin/Overview";
 
 const queryClient = new QueryClient();
 
