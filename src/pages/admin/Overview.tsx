@@ -24,7 +24,8 @@ import {
   Tooltip,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  Legend
 } from 'recharts';
 
 type DashboardStats = {
@@ -212,8 +213,8 @@ const AdminOverview = () => {
     return 'upcoming';
   };
   
-  // Pie chart colors
-  const COLORS = ['#2563eb', '#60a5fa', '#0f766e'];
+  // Chart colors - using blue/slate theme from hero section
+  const COLORS = ['#2563eb', '#3b82f6', '#60a5fa'];
   
   // Prepare registration status data for pie chart
   const registrationStatusData = [
@@ -223,9 +224,9 @@ const AdminOverview = () => {
   ];
 
   return (
-    <div>
+    <div className="space-y-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-slate-900">Dashboard</h2>
+        <h2 className="text-2xl font-semibold text-slate-900">Dashboard Overview</h2>
         <p className="text-slate-500">View workshop and registration statistics</p>
       </div>
       
@@ -238,13 +239,13 @@ const AdminOverview = () => {
         <>
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6 border border-slate-200">
+            <Card className="p-6 border border-slate-200 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Total Workshops</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.totalWorkshops}</h3>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
+                <div className="bg-blue-50 p-3 rounded-lg">
                   <Calendar className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
@@ -255,24 +256,24 @@ const AdminOverview = () => {
               </div>
             </Card>
             
-            <Card className="p-6 border border-slate-200">
+            <Card className="p-6 border border-slate-200 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Total Registrations</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.totalRegistrations}</h3>
                 </div>
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <Ticket className="h-6 w-6 text-green-600" />
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <Ticket className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
-                <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
+                <Badge variant="outline" className="bg-blue-50 border-blue-100 text-blue-700">
                   {stats.registrationRate}% capacity filled
                 </Badge>
               </div>
             </Card>
             
-            <Card className="p-6 border border-slate-200">
+            <Card className="p-6 border border-slate-200 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Popular Workshop</p>
@@ -280,25 +281,25 @@ const AdminOverview = () => {
                     {stats.popularWorkshop || "N/A"}
                   </h3>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
+                <div className="bg-blue-50 p-3 rounded-lg">
                   <Award className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
-                <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                <Badge variant="outline" className="bg-blue-50 border-blue-100 text-blue-700">
                   {stats.popularWorkshopRegistrations} registrations
                 </Badge>
               </div>
             </Card>
             
-            <Card className="p-6 border border-slate-200">
+            <Card className="p-6 border border-slate-200 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Upcoming Events</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.upcomingWorkshops}</h3>
                 </div>
-                <div className="bg-slate-100 p-3 rounded-lg">
-                  <CalendarCheck className="h-6 w-6 text-slate-600" />
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <CalendarCheck className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
@@ -309,15 +310,11 @@ const AdminOverview = () => {
             </Card>
           </div>
           
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Monthly Stats Chart */}
-            <Card className="col-span-2 border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900">Monthly Activity</h3>
-                <p className="text-sm text-slate-500">Workshops and registrations over time</p>
-              </div>
-              <div className="h-80 px-6 pb-6">
+          {/* Charts Row - Improved layout */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Monthly Activity</h3>
+            <Card className="border border-slate-200 shadow-sm overflow-hidden p-6">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.monthlyStats} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -343,20 +340,20 @@ const AdminOverview = () => {
                         return null;
                       }}
                     />
+                    <Legend />
                     <Bar dataKey="workshops" name="Workshops" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="registrations" name="Registrations" fill="#0f766e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="registrations" name="Registrations" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
-            
-            {/* Registration Status Chart */}
-            <Card className="border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900">Workshop Status</h3>
-                <p className="text-sm text-slate-500">Distribution by status</p>
-              </div>
-              <div className="h-80 flex items-center justify-center p-4">
+          </div>
+          
+          {/* Workshop Status Chart - Now in separate row */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Workshop Status</h3>
+            <Card className="border border-slate-200 shadow-sm overflow-hidden p-6">
+              <div className="h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -388,6 +385,7 @@ const AdminOverview = () => {
                         return null;
                       }}
                     />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -397,90 +395,90 @@ const AdminOverview = () => {
           {/* Recent Activity Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Workshops */}
-            <Card className="border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900">Recent Workshops</h3>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {stats.recentWorkshops.length > 0 ? (
-                  stats.recentWorkshops.map((workshop) => {
-                    const status = getWorkshopStatus(workshop.start_date, workshop.end_date);
-                    return (
-                      <div key={workshop.id} className="p-4 hover:bg-slate-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-slate-900">{workshop.title}</h4>
-                          <Badge variant={
-                            status === 'active' ? 'default' : 
-                            status === 'upcoming' ? 'secondary' : 'outline'
-                          } className={
-                            status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
-                            status === 'upcoming' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
-                            'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                          }>
-                            {status}
-                          </Badge>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Workshops</h3>
+              <Card className="border border-slate-200 shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100">
+                  {stats.recentWorkshops.length > 0 ? (
+                    stats.recentWorkshops.map((workshop) => {
+                      const status = getWorkshopStatus(workshop.start_date, workshop.end_date);
+                      return (
+                        <div key={workshop.id} className="p-4 hover:bg-slate-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-medium text-slate-900">{workshop.title}</h4>
+                            <Badge variant={
+                              status === 'active' ? 'default' : 
+                              status === 'upcoming' ? 'secondary' : 'outline'
+                            } className={
+                              status === 'active' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
+                              status === 'upcoming' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
+                              'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }>
+                              {status}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm text-slate-500">
+                            <div className="flex items-center">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                              {formatDate(workshop.start_date)}
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                              {formatTime(workshop.start_date)}
+                            </div>
+                            <div className="flex items-center col-span-2">
+                              <Users className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                              Capacity: {workshop.capacity}
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm text-slate-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                            {formatDate(workshop.start_date)}
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                            {formatTime(workshop.start_date)}
-                          </div>
-                          <div className="flex items-center col-span-2">
-                            <Users className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                            Capacity: {workshop.capacity}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="p-6 text-center text-slate-500">
-                    No recent workshops
-                  </div>
-                )}
-              </div>
-            </Card>
+                      );
+                    })
+                  ) : (
+                    <div className="p-6 text-center text-slate-500">
+                      No recent workshops
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
             
             {/* Recent Registrations */}
-            <Card className="border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900">Recent Registrations</h3>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {stats.recentRegistrations.length > 0 ? (
-                  stats.recentRegistrations.map((registration) => (
-                    <div key={registration.id} className="p-4 hover:bg-slate-50">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-slate-900">
-                          {registration.first_name} {registration.last_name}
-                        </h4>
-                        <span className="text-xs text-slate-500">
-                          {format(new Date(registration.created_at), 'MMM d, h:mm a')}
-                        </span>
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        <div className="flex items-center gap-1 mb-1">
-                          <span className="text-slate-400">{registration.email}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
-                            {registration.workshop_title}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Registrations</h3>
+              <Card className="border border-slate-200 shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100">
+                  {stats.recentRegistrations.length > 0 ? (
+                    stats.recentRegistrations.map((registration) => (
+                      <div key={registration.id} className="p-4 hover:bg-slate-50">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-slate-900">
+                            {registration.first_name} {registration.last_name}
+                          </h4>
+                          <span className="text-xs text-slate-500">
+                            {format(new Date(registration.created_at), 'MMM d, h:mm a')}
                           </span>
                         </div>
+                        <div className="text-sm text-slate-500">
+                          <div className="flex items-center gap-1 mb-1">
+                            <span className="text-slate-400">{registration.email}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
+                              {registration.workshop_title}
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-6 text-center text-slate-500">
+                      No recent registrations
                     </div>
-                  ))
-                ) : (
-                  <div className="p-6 text-center text-slate-500">
-                    No recent registrations
-                  </div>
-                )}
-              </div>
-            </Card>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         </>
       )}

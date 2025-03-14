@@ -21,7 +21,7 @@ const AdminSidebar = () => {
   ];
 
   return (
-    <Sidebar className="border-r border-slate-200 bg-slate-50">
+    <Sidebar className="border-r border-slate-200 bg-white w-64">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-slate-500 font-medium">Admin Panel</SidebarGroupLabel>

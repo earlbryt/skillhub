@@ -22,7 +22,7 @@ const AdminDashboard = () => {
         <SidebarProvider>
           <div className="flex min-h-[calc(100vh-160px)] w-full rounded-xl overflow-hidden shadow-sm bg-white border border-slate-200">
             <AdminSidebar />
-            <main className="flex-1 p-6 bg-white overflow-auto">
+            <main className="flex-1 p-6 bg-white overflow-y-auto overflow-x-hidden">
               <Outlet />
             </main>
           </div>
