@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +13,7 @@ import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle } from 'l
 import { format } from 'date-fns';
 import Footer from '@/components/Footer';
 import { z } from 'zod';
+import { Card, CardContent } from '@/components/ui/card';
 
 const registrationSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -189,7 +191,7 @@ const WorkshopDetails = () => {
         <Navbar />
         <div className="container mx-auto py-12 px-4">
           <div className="flex flex-col items-center justify-center h-64">
-            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-muted-foreground">Loading workshop details...</p>
           </div>
         </div>
@@ -206,7 +208,7 @@ const WorkshopDetails = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold">Workshop Not Found</h1>
             <p className="mt-2 text-muted-foreground">The workshop you're looking for doesn't exist or has been removed.</p>
-            <Button onClick={() => navigate('/workshops')} className="mt-6">
+            <Button onClick={() => navigate('/workshops')} className="mt-6 bg-blue-600 hover:bg-blue-700">
               View All Workshops
             </Button>
           </div>
@@ -224,86 +226,92 @@ const WorkshopDetails = () => {
       <Navbar />
 
       <div className="container mx-auto py-12 px-4">
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
-            <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-              {workshop.image_url ? (
-                <img 
-                  src={workshop.image_url} 
-                  alt={workshop.title} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                  <p className="text-gray-500">No image available</p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h1 className="text-3xl font-bold">{workshop.title}</h1>
-              
-              <div className="flex flex-wrap gap-y-4 mt-4">
-                <div className="flex items-center mr-6">
-                  <Calendar className="h-5 w-5 text-primary mr-2" />
-                  <span>
-                    {format(new Date(workshop.start_date), 'MMMM d, yyyy')}
-                  </span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <Clock className="h-5 w-5 text-primary mr-2" />
-                  <span>
-                    {format(new Date(workshop.start_date), 'h:mm a')} - {format(new Date(workshop.end_date), 'h:mm a')}
-                  </span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <MapPin className="h-5 w-5 text-primary mr-2" />
-                  <span>{workshop.location}</span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <Users className="h-5 w-5 text-primary mr-2" />
-                  <span>{registrationsCount} / {workshop.capacity} registered</span>
-                </div>
-                
-                {workshop.instructor && (
-                  <div className="flex items-center mr-6">
-                    <User className="h-5 w-5 text-primary mr-2" />
-                    <span>Instructor: {workshop.instructor}</span>
+        <Card className="overflow-hidden shadow-lg">
+          <div className="grid md:grid-cols-3 gap-8 p-6">
+            <div className="md:col-span-2 space-y-6">
+              <div className="rounded-xl overflow-hidden bg-gray-100 border border-border shadow-md">
+                {workshop.image_url ? (
+                  <img 
+                    src={workshop.image_url} 
+                    alt={workshop.title} 
+                    className="w-full h-[300px] object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-[300px] flex items-center justify-center bg-gray-200">
+                    <p className="text-gray-500">No image available</p>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800">{workshop.title}</h1>
                 
-                <div className="flex items-center">
-                  <DollarSign className="h-5 w-5 text-primary mr-2" />
-                  <span>{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</span>
+                <div className="flex flex-wrap gap-4 mt-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-slate-700">
+                      {format(new Date(workshop.start_date), 'MMMM d, yyyy')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-slate-700">
+                      {format(new Date(workshop.start_date), 'h:mm a')} - {format(new Date(workshop.end_date), 'h:mm a')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-slate-700">{workshop.location}</span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-slate-700">{registrationsCount} / {workshop.capacity} registered</span>
+                  </div>
+                  
+                  {workshop.instructor && (
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 text-blue-600 mr-2" />
+                      <span className="text-slate-700">Instructor: {workshop.instructor}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center">
+                    <DollarSign className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="text-slate-700">{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="prose max-w-none">
-              <h2 className="text-xl font-bold">About this workshop</h2>
-              <p className="whitespace-pre-line">{workshop.description}</p>
-            </div>
+              <Card className="border border-slate-200">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold text-slate-800 mb-4">About this workshop</h2>
+                  <p className="whitespace-pre-line text-slate-700">{workshop.description}</p>
+                </CardContent>
+              </Card>
 
-            <div className="md:hidden mt-8">
-              <div className="bg-card rounded-lg shadow-md p-6 border border-border">
-                <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
-                
-                {renderRegistrationForm()}
+              <div className="md:hidden mt-8">
+                <Card className="border border-slate-200 shadow-md">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-bold text-slate-800 mb-4">Register for this workshop</h2>
+                    {renderRegistrationForm()}
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </div>
 
-          <div className="hidden md:block">
-            <div className="bg-card rounded-lg shadow-md p-6 border border-border sticky top-8">
-              <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
-              
-              {renderRegistrationForm()}
+            <div className="hidden md:block">
+              <Card className="border border-slate-200 shadow-md sticky top-8">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold text-slate-800 mb-4">Register for this workshop</h2>
+                  {renderRegistrationForm()}
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <Footer />
@@ -313,9 +321,9 @@ const WorkshopDetails = () => {
   function renderRegistrationForm() {
     if (isWorkshopInPast) {
       return (
-        <div className="bg-muted p-4 rounded-md">
-          <div className="flex items-center text-muted-foreground">
-            <AlertCircle className="h-5 w-5 mr-2" />
+        <div className="bg-slate-100 p-4 rounded-md border border-slate-200">
+          <div className="flex items-center text-slate-700">
+            <AlertCircle className="h-5 w-5 mr-2 text-blue-600" />
             <p>This workshop has already ended.</p>
           </div>
         </div>
@@ -324,7 +332,7 @@ const WorkshopDetails = () => {
 
     if (alreadyRegistered) {
       return (
-        <div className="bg-green-50 p-4 rounded-md">
+        <div className="bg-green-50 p-4 rounded-md border border-green-200">
           <div className="flex items-center text-green-700">
             <AlertCircle className="h-5 w-5 mr-2 text-green-500" />
             <p>You're already registered for this workshop!</p>
@@ -335,9 +343,9 @@ const WorkshopDetails = () => {
 
     if (isWorkshopFull) {
       return (
-        <div className="bg-muted p-4 rounded-md">
-          <div className="flex items-center text-muted-foreground">
-            <AlertCircle className="h-5 w-5 mr-2" />
+        <div className="bg-slate-100 p-4 rounded-md border border-slate-200">
+          <div className="flex items-center text-slate-700">
+            <AlertCircle className="h-5 w-5 mr-2 text-blue-600" />
             <p>This workshop is full. Please check back later or explore other workshops.</p>
           </div>
         </div>
@@ -347,7 +355,7 @@ const WorkshopDetails = () => {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="first_name">First Name</Label>
+          <Label htmlFor="first_name" className="text-slate-700">First Name</Label>
           <Input
             id="first_name"
             name="first_name"
@@ -356,14 +364,15 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.first_name}
+            className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
           />
           {formErrors.first_name && (
-            <p className="text-sm text-destructive">{formErrors.first_name}</p>
+            <p className="text-sm text-red-600">{formErrors.first_name}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="last_name">Last Name</Label>
+          <Label htmlFor="last_name" className="text-slate-700">Last Name</Label>
           <Input
             id="last_name"
             name="last_name"
@@ -372,14 +381,15 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.last_name}
+            className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
           />
           {formErrors.last_name && (
-            <p className="text-sm text-destructive">{formErrors.last_name}</p>
+            <p className="text-sm text-red-600">{formErrors.last_name}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-slate-700">Email</Label>
           <Input
             id="email"
             name="email"
@@ -389,14 +399,15 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.email}
+            className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
           />
           {formErrors.email && (
-            <p className="text-sm text-destructive">{formErrors.email}</p>
+            <p className="text-sm text-red-600">{formErrors.email}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number (Optional)</Label>
+          <Label htmlFor="phone" className="text-slate-700">Phone Number (Optional)</Label>
           <Input
             id="phone"
             name="phone"
@@ -404,12 +415,13 @@ const WorkshopDetails = () => {
             value={formData.phone || ''}
             onChange={handleInputChange}
             disabled={isSubmitting}
+            className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-blue-600 hover:bg-blue-700 transition-colors"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -425,7 +437,7 @@ const WorkshopDetails = () => {
           )}
         </Button>
 
-        <p className="text-sm text-muted-foreground text-center mt-2">
+        <p className="text-sm text-slate-500 text-center mt-2">
           {workshop.capacity - registrationsCount} {workshop.capacity - registrationsCount === 1 ? 'spot' : 'spots'} remaining
         </p>
       </form>
