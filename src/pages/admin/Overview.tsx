@@ -213,7 +213,7 @@ const AdminOverview = () => {
   };
   
   // Pie chart colors
-  const COLORS = ['#6366f1', '#f43f5e', '#10b981'];
+  const COLORS = ['#2563eb', '#60a5fa', '#0f766e'];
   
   // Prepare registration status data for pie chart
   const registrationStatusData = [
@@ -231,7 +231,7 @@ const AdminOverview = () => {
       
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-slate-600">Loading dashboard data...</span>
         </div>
       ) : (
@@ -244,8 +244,8 @@ const AdminOverview = () => {
                   <p className="text-sm font-medium text-slate-500">Total Workshops</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.totalWorkshops}</h3>
                 </div>
-                <div className="bg-indigo-100 p-3 rounded-lg">
-                  <Calendar className="h-6 w-6 text-indigo-600" />
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Calendar className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
@@ -261,12 +261,12 @@ const AdminOverview = () => {
                   <p className="text-sm font-medium text-slate-500">Total Registrations</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.totalRegistrations}</h3>
                 </div>
-                <div className="bg-emerald-100 p-3 rounded-lg">
-                  <Ticket className="h-6 w-6 text-emerald-600" />
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <Ticket className="h-6 w-6 text-green-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
-                <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+                <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
                   {stats.registrationRate}% capacity filled
                 </Badge>
               </div>
@@ -280,12 +280,12 @@ const AdminOverview = () => {
                     {stats.popularWorkshop || "N/A"}
                   </h3>
                 </div>
-                <div className="bg-amber-100 p-3 rounded-lg">
-                  <Award className="h-6 w-6 text-amber-600" />
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Award className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
-                <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
+                <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
                   {stats.popularWorkshopRegistrations} registrations
                 </Badge>
               </div>
@@ -297,8 +297,8 @@ const AdminOverview = () => {
                   <p className="text-sm font-medium text-slate-500">Upcoming Events</p>
                   <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.upcomingWorkshops}</h3>
                 </div>
-                <div className="bg-rose-100 p-3 rounded-lg">
-                  <CalendarCheck className="h-6 w-6 text-rose-600" />
+                <div className="bg-slate-100 p-3 rounded-lg">
+                  <CalendarCheck className="h-6 w-6 text-slate-600" />
                 </div>
               </div>
               <div className="flex items-center mt-4 text-sm">
@@ -312,18 +312,13 @@ const AdminOverview = () => {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Monthly Stats Chart */}
-            <Card className="col-span-2 border border-slate-200">
-              <div className="p-6">
+            <Card className="col-span-2 border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-100">
                 <h3 className="text-lg font-semibold text-slate-900">Monthly Activity</h3>
                 <p className="text-sm text-slate-500">Workshops and registrations over time</p>
               </div>
-              <div className="h-72 px-4">
-                <ChartContainer 
-                  config={{
-                    workshops: { color: '#6366f1' },
-                    registrations: { color: '#10b981' },
-                  }}
-                >
+              <div className="h-80 px-6 pb-6">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.monthlyStats} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis 
@@ -331,39 +326,70 @@ const AdminOverview = () => {
                       tick={{ fontSize: 12, fill: '#64748b' }}
                     />
                     <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="workshops" name="Workshops" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="registrations" name="Registrations" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
+                              <p className="font-medium text-slate-900">{label}</p>
+                              {payload.map((entry, index) => (
+                                <p key={index} className="text-sm" style={{ color: entry.color }}>
+                                  {entry.name}: {entry.value}
+                                </p>
+                              ))}
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="workshops" name="Workshops" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="registrations" name="Registrations" fill="#0f766e" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   </BarChart>
-                </ChartContainer>
+                </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Registration Status Chart */}
-            <Card className="border border-slate-200">
-              <div className="p-6">
+            <Card className="border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-100">
                 <h3 className="text-lg font-semibold text-slate-900">Workshop Status</h3>
                 <p className="text-sm text-slate-500">Distribution by status</p>
               </div>
-              <div className="h-72 flex items-center justify-center">
-                <PieChart width={250} height={250}>
-                  <Pie
-                    data={registrationStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {registrationStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+              <div className="h-80 flex items-center justify-center p-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={registrationStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {registrationStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
+                              <p className="text-sm font-medium text-slate-900">
+                                {payload[0].name}: {payload[0].value}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </Card>
           </div>
@@ -371,7 +397,7 @@ const AdminOverview = () => {
           {/* Recent Activity Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Workshops */}
-            <Card className="border border-slate-200">
+            <Card className="border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100">
                 <h3 className="text-lg font-semibold text-slate-900">Recent Workshops</h3>
               </div>
@@ -387,8 +413,8 @@ const AdminOverview = () => {
                             status === 'active' ? 'default' : 
                             status === 'upcoming' ? 'secondary' : 'outline'
                           } className={
-                            status === 'active' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 
-                            status === 'upcoming' ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 
+                            status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
+                            status === 'upcoming' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
                             'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }>
                             {status}
@@ -420,7 +446,7 @@ const AdminOverview = () => {
             </Card>
             
             {/* Recent Registrations */}
-            <Card className="border border-slate-200">
+            <Card className="border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100">
                 <h3 className="text-lg font-semibold text-slate-900">Recent Registrations</h3>
               </div>
@@ -441,7 +467,7 @@ const AdminOverview = () => {
                           <span className="text-slate-400">{registration.email}</span>
                         </div>
                         <div className="flex items-center">
-                          <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded-md">
+                          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
                             {registration.workshop_title}
                           </span>
                         </div>

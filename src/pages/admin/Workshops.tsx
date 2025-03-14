@@ -20,8 +20,7 @@ import {
   Users,
   Clock,
   MapPin,
-  Calendar,
-  CalendarClock
+  Calendar
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -29,11 +28,6 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
 import {
   BarChart,
   Bar,
@@ -153,9 +147,9 @@ const AdminWorkshops = () => {
     name: workshop.title.length > 20 ? workshop.title.substring(0, 20) + '...' : workshop.title,
     registrations: workshop.registrations_count,
     capacity: workshop.capacity,
-    fill: workshop.registrations_count >= workshop.capacity ? '#f43f5e' : 
-          workshop.registrations_count >= workshop.capacity * 0.8 ? '#f59e0b' : '#6366f1'
-  }));
+    fill: workshop.registrations_count >= workshop.capacity ? '#94a3b8' : 
+          workshop.registrations_count >= workshop.capacity * 0.8 ? '#0369a1' : '#2563eb'
+  })).slice(0, 6);
   
   return (
     <div>
@@ -164,26 +158,21 @@ const AdminWorkshops = () => {
           <h2 className="text-2xl font-semibold text-slate-900">Workshops</h2>
           <p className="text-slate-500">Manage your workshops and view registrations</p>
         </div>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+        <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
           <Plus size={16} /> Add Workshop
         </Button>
       </div>
       
       {/* Registration Overview Chart */}
-      <Card className="mb-8 p-4">
+      <Card className="mb-8 p-6 border border-slate-200 overflow-hidden">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-slate-900">Registration Overview</h3>
           <p className="text-sm text-slate-500">Workshop registrations vs. capacity</p>
         </div>
         <div className="h-72">
           {chartData.length > 0 ? (
-            <ChartContainer 
-              config={{
-                registrations: { color: '#6366f1' },
-                capacity: { color: '#cbd5e1' },
-              }}
-            >
-              <BarChart data={chartData.slice(0, 6)} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis 
                   dataKey="name" 
@@ -193,11 +182,24 @@ const AdminWorkshops = () => {
                   tickMargin={10}
                 />
                 <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="registrations" name="Registrations" radius={[4, 4, 0, 0]} maxBarSize={60} />
-                <Bar dataKey="capacity" name="Capacity" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
+                          <p className="font-medium text-slate-900 mb-1">{label}</p>
+                          <p className="text-sm text-blue-600">Registrations: {payload[0].value}</p>
+                          <p className="text-sm text-slate-600">Capacity: {payload[1].value}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="registrations" name="Registrations" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                <Bar dataKey="capacity" name="Capacity" fill="#cbd5e1" radius={[4, 4, 0, 0]} maxBarSize={60} />
               </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400">
               No workshop data available
@@ -207,7 +209,7 @@ const AdminWorkshops = () => {
       </Card>
       
       {/* Search and filter */}
-      <Card className="mb-6">
+      <Card className="mb-6 border border-slate-200">
         <div className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -222,13 +224,13 @@ const AdminWorkshops = () => {
       </Card>
       
       {/* Workshops table */}
-      <Card className="overflow-hidden">
-        <div className="rounded-md border border-slate-200">
+      <Card className="overflow-hidden border border-slate-200">
+        <div className="rounded-md border-b border-slate-200">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50">
                 <TableHead 
-                  className="cursor-pointer hover:text-indigo-600 transition-colors"
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
                   onClick={() => handleSort('title')}
                 >
                   <div className="flex items-center">
@@ -239,7 +241,7 @@ const AdminWorkshops = () => {
                   </div>
                 </TableHead>
                 <TableHead 
-                  className="cursor-pointer hover:text-indigo-600 transition-colors"
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
                   onClick={() => handleSort('start_date')}
                 >
                   <div className="flex items-center">
@@ -264,7 +266,7 @@ const AdminWorkshops = () => {
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
                     <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                       <span className="ml-2 text-slate-500">Loading...</span>
                     </div>
                   </TableCell>
@@ -299,10 +301,10 @@ const AdminWorkshops = () => {
                         <Users className="h-4 w-4 mr-1.5 text-slate-400" />
                         <span className={`font-medium ${
                           workshop.registrations_count >= workshop.capacity 
-                            ? 'text-rose-600' 
+                            ? 'text-slate-700' 
                             : workshop.registrations_count >= workshop.capacity * 0.8
-                              ? 'text-amber-600'
-                              : 'text-indigo-600'
+                              ? 'text-blue-600'
+                              : 'text-blue-600'
                         }`}>
                           {workshop.registrations_count}
                         </span>
@@ -310,7 +312,7 @@ const AdminWorkshops = () => {
                         <span className="text-slate-600">{workshop.capacity}</span>
                       </div>
                       {workshop.registrations_count >= workshop.capacity && (
-                        <div className="text-xs text-rose-600 mt-1">
+                        <div className="text-xs text-slate-600 mt-1">
                           At capacity
                         </div>
                       )}
@@ -320,15 +322,15 @@ const AdminWorkshops = () => {
                         workshop.registration_status === 'active' ? 'default' : 
                         workshop.registration_status === 'upcoming' ? 'secondary' : 'outline'
                       } className={
-                        workshop.registration_status === 'active' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 
-                        workshop.registration_status === 'upcoming' ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 
+                        workshop.registration_status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
+                        workshop.registration_status === 'upcoming' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
                         'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }>
                         {workshop.registration_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" asChild className="border-slate-200 text-slate-700 hover:text-indigo-700 hover:border-indigo-200">
+                      <Button variant="outline" size="sm" asChild className="border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200">
                         <Link to={`/admin/workshops/${workshop.id}/attendees`}>
                           <Eye className="h-4 w-4" />
                           <span className="ml-1.5">Attendees</span>

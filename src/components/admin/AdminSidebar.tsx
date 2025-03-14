@@ -33,7 +33,7 @@ const AdminSidebar = () => {
                     <NavLink 
                       to={item.path} 
                       className={({ isActive }) => 
-                        isActive ? 'text-indigo-700 bg-indigo-50 font-medium' : 'text-slate-700 hover:bg-slate-100'
+                        isActive ? 'text-blue-700 bg-blue-50 font-medium' : 'text-slate-700 hover:bg-slate-100'
                       }
                       end={item.path === '/admin'}
                     >

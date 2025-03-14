@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -11,93 +11,93 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Mail, ExternalLink, BookOpen } from 'lucide-react';
+import { Search, Mail, Calendar, User, MapPin, Phone, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Workshop } from '@/types/supabase';
+import { format } from 'date-fns';
 
-type UserWithWorkshops = {
+interface UserWithWorkshops {
   id: string;
-  email: string;
   first_name: string;
   last_name: string;
+  email: string;
+  phone?: string;
   created_at: string;
   workshops: {
     id: string;
     title: string;
-    start_date: string;
+    date: string;
+    status: string;
   }[];
-};
+}
 
 const AdminUsers = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<UserWithWorkshops[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
-  
+
   useEffect(() => {
-    const fetchUsersWithWorkshops = async () => {
+    const fetchUsers = async () => {
       try {
         setLoading(true);
         
-        // First get all registrations with workshop data
-        const { data: registrationsData, error: registrationsError } = await supabase
+        // Fetch users
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .order(sortField, { ascending: sortDirection === 'asc' });
+          
+        if (userError) throw userError;
+        
+        // Fetch workshops and registrations
+        const { data: registrations, error: registrationsError } = await supabase
           .from('registrations')
-          .select(`
-            user_id,
-            first_name,
-            last_name,
-            email,
-            created_at,
-            workshop:workshops(
-              id,
-              title,
-              start_date
-            )
-          `)
-          .order('created_at', { ascending: false });
+          .select('*, workshop:workshops(*)');
           
         if (registrationsError) throw registrationsError;
         
-        // Process the data to group by user
-        const userMap = new Map<string, UserWithWorkshops>();
-        
-        registrationsData?.forEach(registration => {
-          // Use email as unique identifier since it's always present
-          const userKey = registration.email;
+        // Process data to combine users with their workshop registrations
+        const usersWithWorkshops = (userData || []).map(user => {
+          const userRegistrations = registrations?.filter(reg => reg.user_id === user.id) || [];
           
-          if (!userMap.has(userKey)) {
-            userMap.set(userKey, {
-              id: registration.user_id || '',
-              email: registration.email,
-              first_name: registration.first_name,
-              last_name: registration.last_name,
-              created_at: registration.created_at,
-              workshops: []
-            });
-          }
-          
-          // Add workshop to user's workshops if not already added
-          const user = userMap.get(userKey);
-          if (user && registration.workshop) {
-            const workshopExists = user.workshops.some(w => w.id === (registration.workshop as any).id);
-            if (!workshopExists) {
-              user.workshops.push({
-                id: (registration.workshop as any).id,
-                title: (registration.workshop as any).title,
-                start_date: (registration.workshop as any).start_date
-              });
+          const workshops = userRegistrations.map(registration => {
+            const workshop = registration.workshop as any;
+            const now = new Date();
+            const startDate = new Date(workshop.start_date);
+            const endDate = new Date(workshop.end_date);
+            
+            let status = '';
+            if (now > endDate) {
+              status = 'completed';
+            } else if (now >= startDate && now <= endDate) {
+              status = 'active';
+            } else {
+              status = 'upcoming';
             }
-          }
+            
+            return {
+              id: workshop.id,
+              title: workshop.title,
+              date: format(new Date(workshop.start_date), 'MMM d, yyyy'),
+              status
+            };
+          });
+          
+          return {
+            ...user,
+            workshops
+          };
         });
         
-        setUsers(Array.from(userMap.values()));
+        setUsers(usersWithWorkshops);
       } catch (error) {
-        console.error('Error fetching users with workshops:', error);
+        console.error('Error fetching users data:', error);
         toast({
-          title: "Error fetching users",
+          title: "Error loading users",
           description: "Please try again later.",
           variant: "destructive",
         });
@@ -106,35 +106,41 @@ const AdminUsers = () => {
       }
     };
     
-    fetchUsersWithWorkshops();
-  }, [toast]);
-  
+    fetchUsers();
+  }, [sortField, sortDirection, toast]);
+
   // Filter users based on search query
   const filteredUsers = users.filter(user => 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+    user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.phone?.includes(searchQuery)
   );
-  
-  // Format date
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM d, yyyy');
+
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
   };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Users</h2>
-          <p className="text-slate-500">View users and their workshop registrations</p>
-        </div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold text-slate-900">Users</h2>
+        <p className="text-slate-500">Manage users and view their workshop registrations</p>
       </div>
-      
-      <Card className="mb-6">
+
+      {/* Search */}
+      <Card className="mb-6 border border-slate-200">
         <div className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
             <Input
-              placeholder="Search users by name or email..."
+              placeholder="Search users by name, email or phone..."
               className="pl-10 border-slate-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -142,15 +148,46 @@ const AdminUsers = () => {
           </div>
         </div>
       </Card>
-      
-      <Card className="overflow-hidden">
-        <div className="rounded-md border border-slate-200">
+
+      {/* Users table */}
+      <Card className="overflow-hidden border border-slate-200">
+        <div className="rounded-md border-b border-slate-200">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50">
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => handleSort('last_name')}
+                >
+                  <div className="flex items-center">
+                    User
+                    {sortField === 'last_name' && (
+                      sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => handleSort('email')}
+                >
+                  <div className="flex items-center">
+                    Contact
+                    {sortField === 'email' && (
+                      sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center">
+                    Joined
+                    {sortField === 'created_at' && (
+                      sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>Workshops</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -160,50 +197,84 @@ const AdminUsers = () => {
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
                     <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                      <span className="ml-2 text-slate-500">Loading...</span>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-slate-500">Loading users...</span>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <TableRow key={user.email} className="hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900">
-                      {user.first_name} {user.last_name}
-                    </TableCell>
-                    <TableCell className="text-slate-700">{user.email}</TableCell>
-                    <TableCell className="text-slate-700">
-                      {formatDate(user.created_at)}
+                  <TableRow key={user.id} className="hover:bg-slate-50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                          {user.first_name?.[0]}{user.last_name?.[0]}
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900">
+                            {user.first_name} {user.last_name}
+                          </div>
+                          <div className="text-sm text-slate-500 flex items-center">
+                            <User className="h-3 w-3 mr-1" />
+                            {user.id}
+                          </div>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1.5">
+                      <div className="text-sm space-y-1">
+                        <div className="flex items-center text-slate-700">
+                          <Mail className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                          <span className="text-sm">{user.email}</span>
+                        </div>
+                        {user.phone && (
+                          <div className="flex items-center text-slate-700">
+                            <Phone className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                            <span className="text-sm">{user.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-slate-700">
+                        <Calendar className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                        <span className="text-sm">
+                          {format(new Date(user.created_at), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1.5">
                         {user.workshops.length > 0 ? (
                           user.workshops.map((workshop, index) => (
-                            <Badge 
-                              key={workshop.id} 
-                              variant="outline" 
-                              className="justify-start w-fit bg-slate-50 border-slate-200 text-slate-700"
-                            >
-                              <BookOpen className="h-3 w-3 mr-1 text-indigo-600" />
-                              {workshop.title}
-                            </Badge>
+                            <div key={index} className="flex flex-col">
+                              <div className="flex items-center">
+                                <span className="text-sm font-medium text-slate-800">{workshop.title}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-slate-500">{workshop.date}</span>
+                                <Badge variant={
+                                  workshop.status === 'active' ? 'default' : 
+                                  workshop.status === 'upcoming' ? 'secondary' : 'outline'
+                                } className={
+                                  workshop.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 
+                                  workshop.status === 'upcoming' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 
+                                  'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                }>
+                                  {workshop.status}
+                                </Badge>
+                              </div>
+                            </div>
                           ))
                         ) : (
-                          <span className="text-slate-400 text-sm">No workshops</span>
+                          <span className="text-xs text-slate-500">No workshops registered</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" className="h-8 border-slate-200 text-slate-700 hover:text-indigo-700 hover:border-indigo-200">
-                          <Mail className="h-3.5 w-3.5" />
-                        </Button>
-                        {user.id && (
-                          <Button variant="outline" size="sm" className="h-8 border-slate-200 text-slate-700 hover:text-indigo-700 hover:border-indigo-200">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                      </div>
+                      <Button variant="outline" size="sm" className="border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200">
+                        View Details
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
