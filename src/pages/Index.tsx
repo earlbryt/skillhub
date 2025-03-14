@@ -155,8 +155,8 @@ const Index = () => {
                   key={index} 
                   className="premium-card p-6 card-hover"
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <feature.icon size={24} className="text-primary" />
+                  <div className="w-12 h-12 rounded-full bg-blue-600/10 flex items-center justify-center mb-4">
+                    <feature.icon size={24} className="text-blue-600" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                   <p className="text-foreground/70">{feature.description}</p>
@@ -167,12 +167,12 @@ const Index = () => {
         </section>
         
         {/* Upcoming Workshop with Countdown */}
-        <section className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
+        <section className="py-16 bg-gradient-to-r from-blue-50 to-blue-100">
           <div className="container mx-auto px-4">
             <div className="premium-card overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="p-8 lg:p-12">
-                  <div className="text-sm font-medium text-accent mb-2">Next Workshop</div>
+                  <div className="text-sm font-medium text-blue-600 mb-2">Next Workshop</div>
                   <h2 className="text-2xl lg:text-3xl font-bold mb-4">
                     {upcomingWorkshop ? upcomingWorkshop.title : 'Coming Soon'}
                   </h2>
@@ -184,17 +184,17 @@ const Index = () => {
                     <>
                       <div className="flex flex-wrap gap-4 mb-6">
                         <div className="flex items-center">
-                          <Calendar size={18} className="mr-2 text-primary" />
+                          <Calendar size={18} className="mr-2 text-blue-600" />
                           <span>{format(new Date(upcomingWorkshop.start_date), 'MMMM d, yyyy')}</span>
                         </div>
                         <div className="flex items-center">
-                          <Clock size={18} className="mr-2 text-primary" />
+                          <Clock size={18} className="mr-2 text-blue-600" />
                           <span>
                             {format(new Date(upcomingWorkshop.start_date), 'h:mm a')} - {format(new Date(upcomingWorkshop.end_date), 'h:mm a')}
                           </span>
                         </div>
                         <div className="flex items-center">
-                          <Users size={18} className="mr-2 text-primary" />
+                          <Users size={18} className="mr-2 text-blue-600" />
                           <span>{upcomingWorkshop.capacity} spots available</span>
                         </div>
                       </div>
@@ -204,8 +204,8 @@ const Index = () => {
                         <CountdownTimer targetDate={upcomingWorkshop.start_date} />
                       </div>
                       
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 btn-hover" asChild>
-                        <Link to={`/workshops/${upcomingWorkshop.id}`}>
+                      <Button size="lg" className="bg-blue-600 hover:bg-blue-700 btn-hover" asChild>
+                        <Link to="/signup">
                           Secure Your Spot
                         </Link>
                       </Button>
@@ -220,8 +220,8 @@ const Index = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 lg:hidden">
                     {upcomingWorkshop && (
-                      <Button size="lg" className="w-full bg-primary hover:bg-primary/90" asChild>
-                        <Link to={`/workshops/${upcomingWorkshop.id}`}>
+                      <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700" asChild>
+                        <Link to="/signup">
                           Secure Your Spot
                         </Link>
                       </Button>
@@ -252,7 +252,7 @@ const Index = () => {
         </section>
         
         {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-primary to-accent text-white">
+        <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6">Ready to Upgrade Your Skills?</h2>
             <p className="text-white/80 max-w-2xl mx-auto mb-8">
@@ -262,10 +262,10 @@ const Index = () => {
             <Button 
               size="lg" 
               variant="secondary" 
-              className="bg-white text-primary hover:bg-white/90 btn-hover"
+              className="bg-white text-blue-600 hover:bg-white/90 btn-hover"
               asChild
             >
-              <Link to="/register">
+              <Link to="/signup">
                 Register Now <ChevronRight size={18} />
               </Link>
             </Button>

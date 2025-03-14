@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Brain, GraduationCap, Sparkles, Globe, Users } from 'lucide-react';
+import { ArrowRight, Brain, GraduationCap, Sparkles, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedBlob from '@/components/ui/animated-blob';
 import FeatureCard from '@/components/ui/feature-card';
@@ -54,18 +54,18 @@ const HeroSection = () => {
     <section ref={heroRef} className="relative pt-32 pb-20 overflow-hidden">
       {/* Animated Background with Blobs and Patterns */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 opacity-90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-background to-blue-800/5 opacity-90"></div>
         
         {/* Geometric Patterns - Animated Blobs */}
         <div className="absolute top-0 left-0 w-full h-full opacity-20">
-          <AnimatedBlob color="bg-primary" position="top-10 left-10" />
-          <AnimatedBlob color="bg-accent" position="top-0 right-0" delay="2000ms" />
-          <AnimatedBlob color="bg-secondary" position="bottom-0 left-20" delay="4000ms" />
+          <AnimatedBlob color="bg-blue-600" position="top-10 left-10" />
+          <AnimatedBlob color="bg-blue-500" position="top-0 right-0" delay="2000ms" />
+          <AnimatedBlob color="bg-blue-700" position="bottom-0 left-20" delay="4000ms" />
         </div>
 
         {/* Neural Network Pattern */}
         <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234338ca' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e40af' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           backgroundSize: '30px 30px'
         }}></div>
       </div>
@@ -84,16 +84,16 @@ const HeroSection = () => {
             <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6 animate-fade-in">
               <span className="block mb-2">Elevate Your</span>
               <span className="relative">
-                <span className="gradient-heading">
+                <span className="text-blue-600">
                   Professional Skills
                 </span>
                 <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 400 8" fill="none">
                   <path d="M1 5.5C100 2.5 200 2.5 399 5.5" stroke="url(#paint0_linear)" strokeWidth="2" strokeLinecap="round"/>
                   <defs>
                     <linearGradient id="paint0_linear" x1="1" y1="5.5" x2="399" y2="5.5" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#6366f1"/>
-                      <stop offset="0.5" stopColor="#8b5cf6"/>
-                      <stop offset="1" stopColor="#d946ef"/>
+                      <stop stopColor="#2563eb"/>
+                      <stop offset="0.5" stopColor="#3b82f6"/>
+                      <stop offset="1" stopColor="#60a5fa"/>
                     </linearGradient>
                   </defs>
                 </svg>
@@ -110,10 +110,10 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Button 
                 size="lg" 
-                className="magnetic-button px-8 py-7 bg-gradient-to-r from-primary via-accent to-secondary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
+                className="magnetic-button px-8 py-7 bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
                 asChild
               >
-                <Link to="/register">
+                <Link to="/signup">
                   <span>Register Now</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -122,7 +122,7 @@ const HeroSection = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="magnetic-button px-8 py-7 border-2 border-border hover:border-primary/20 hover:bg-primary/5 text-foreground transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
+                className="magnetic-button px-8 py-7 border-2 border-border hover:border-blue-600/20 hover:bg-blue-600/5 text-foreground transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
                 onClick={scrollToFeatured}
               >
                 <span>Browse Workshops</span>
@@ -145,13 +145,13 @@ const HeroSection = () => {
           {/* Right Side Interactive Elements */}
           <div className="relative">
             {/* Decorative Background Elements */}
-            <div className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-accent/10 to-secondary/10 rounded-full blur-3xl"></div>
+            <div className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-blue-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-blue-600/10 rounded-full blur-3xl"></div>
             
             {/* Main Content Container */}
             <div className="relative mx-4 sm:mx-0">
               {/* Premium Badge */}
-              <div className="absolute -top-6 right-4 sm:right-10 bg-gradient-to-r from-primary to-accent text-white px-6 py-2 rounded-full shadow-xl transform -rotate-2 z-20">
+              <div className="absolute -top-6 right-4 sm:right-10 bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-full shadow-xl transform -rotate-2 z-20">
                 <span className="text-sm font-semibold">Premium Workshops</span>
               </div>
 
@@ -191,16 +191,16 @@ const HeroSection = () => {
                     icon={Brain}
                     title="AI Learning"
                     description="Personalized learning paths and recommendations"
-                    gradientFrom="primary"
-                    gradientTo="accent"
+                    gradientFrom="blue-600"
+                    gradientTo="blue-500"
                   />
                   
                   <FeatureCard
                     icon={Globe}
                     title="Global Experts"
                     description="Learn from industry professionals worldwide"
-                    gradientFrom="accent"
-                    gradientTo="secondary"
+                    gradientFrom="blue-500"
+                    gradientTo="blue-800"
                   />
                 </div>
               </div>
@@ -208,7 +208,7 @@ const HeroSection = () => {
               {/* Floating Elements */}
               <div className="hidden sm:block absolute -left-16 top-1/3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-4 transform -rotate-6 hover:rotate-0 transition-all duration-300 border border-white/30 z-20">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-xl flex items-center justify-center">
                     <Brain className="w-7 h-7 text-white" />
                   </div>
                   <div>
@@ -220,7 +220,7 @@ const HeroSection = () => {
 
               <div className="hidden sm:block absolute -right-16 bottom-1/3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-4 transform rotate-6 hover:rotate-0 transition-all duration-300 border border-white/30 z-20">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent to-secondary rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-800 rounded-xl flex items-center justify-center">
                     <Sparkles className="w-7 h-7 text-white" />
                   </div>
                   <div>
@@ -245,7 +245,7 @@ const HeroSection = () => {
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white object-cover"
                     />
                   ))}
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-white flex items-center justify-center">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 border-2 border-white flex items-center justify-center">
                     <span className="text-[10px] sm:text-xs font-bold text-white">25+</span>
                   </div>
                 </div>
