@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,9 +12,18 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle, ArrowLeft, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import Footer from '@/components/Footer';
+import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { z } from "@/utils/mockZod";
+
+const registrationSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().optional(),
+});
+
+type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 const WorkshopDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +32,7 @@ const WorkshopDetails = () => {
   const [registrationsCount, setRegistrationsCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegistrationFormData>({
     first_name: '',
     last_name: '',
     email: '',
@@ -111,13 +121,16 @@ const WorkshopDetails = () => {
     e.preventDefault();
     
     try {
-      const isValid = formData && typeof formData === 'object' && 'first_name' in formData && 'last_name' in formData && 'email' in formData;
-      if (!isValid) {
-        setFormErrors({
-          first_name: "First name is required",
-          last_name: "Last name is required",
-          email: "Please enter a valid email"
+      const validationResult = registrationSchema.safeParse(formData);
+      
+      if (!validationResult.success) {
+        const errors: Record<string, string> = {};
+        validationResult.error.errors.forEach(err => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
         });
+        setFormErrors(errors);
         return;
       }
       
