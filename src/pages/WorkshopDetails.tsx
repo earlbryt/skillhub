@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle, ArrowLeft, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import Footer from '@/components/Footer';
-import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
