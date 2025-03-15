@@ -1,71 +1,58 @@
-
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
-type AdminContextType = {
+interface AdminContextType {
   isAdmin: boolean;
   loading: boolean;
-  checkAdminStatus: () => Promise<boolean>;
-};
+}
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const checkAdminStatus = async (): Promise<boolean> => {
-    if (!user) return false;
-    
-    try {
-      // Query the admin_users table to check if the current user is an admin
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-      }
-      
-      // If we found a record, the user is an admin
-      const userIsAdmin = !!data;
-      setIsAdmin(userIsAdmin);
-      return userIsAdmin;
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to verify admin privileges",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
+  const { user, loading: authLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const verifyAdminStatus = async () => {
-      setLoading(true);
-      await checkAdminStatus();
-      setLoading(false);
+    const checkAdminStatus = async () => {
+      if (!user || authLoading) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Check if the user exists in the admin_users table
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          // If there's an error (like no matching record), the user is not an admin
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          // If we found a record, the user is an admin
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (user) {
-      verifyAdminStatus();
-    } else {
-      setIsAdmin(false);
-      setLoading(false);
-    }
-  }, [user]);
+    checkAdminStatus();
+  }, [user, authLoading]);
 
   return (
-    <AdminContext.Provider value={{ isAdmin, loading, checkAdminStatus }}>
+    <AdminContext.Provider value={{ isAdmin, loading }}>
       {children}
     </AdminContext.Provider>
   );

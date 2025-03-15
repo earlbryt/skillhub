@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Menu, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { isAdmin } = useAdmin(); // Add this line to access admin context
+  const { isAdmin, loading: adminLoading } = useAdmin(); // Access admin context
   
   const activeStyle = "text-blue-600 hover:text-blue-800 font-semibold transition-colors";
   const inactiveStyle = "text-gray-600 hover:text-gray-800 transition-colors";
@@ -45,7 +44,7 @@ const Navbar = () => {
           </Link>
           
           {/* Admin Dashboard Link - only visible to admin users */}
-          {isAdmin && (
+          {!adminLoading && isAdmin && (
             <Link to="/admin" className={isActiveLink("/admin") ? activeStyle : inactiveStyle}>
               Admin
             </Link>
@@ -86,7 +85,7 @@ const Navbar = () => {
                   </Link>
                   
                   {/* Admin Dashboard link in dropdown - only for admin users */}
-                  {isAdmin && (
+                  {!adminLoading && isAdmin && (
                     <Link 
                       to="/admin" 
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -144,7 +143,7 @@ const Navbar = () => {
             </Link>
             
             {/* Admin Dashboard link in mobile menu - only for admin users */}
-            {isAdmin && (
+            {!adminLoading && isAdmin && (
               <Link 
                 to="/admin" 
                 className={isActiveLink("/admin") ? activeStyle : inactiveStyle}
