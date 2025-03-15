@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,14 +14,34 @@ import Footer from '@/components/Footer';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
-const registrationSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-});
+// Define the registration form data type
+interface RegistrationFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+}
 
-type RegistrationFormData = z.infer<typeof registrationSchema>;
+// Custom validation function
+const validateForm = (data: RegistrationFormData): Record<string, string> => {
+  const errors: Record<string, string> = {};
+  
+  if (!data.first_name.trim()) {
+    errors.first_name = "First name is required";
+  }
+  
+  if (!data.last_name.trim()) {
+    errors.last_name = "Last name is required";
+  }
+  
+  if (!data.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(data.email)) {
+    errors.email = "Please enter a valid email";
+  }
+  
+  return errors;
+};
 
 const WorkshopDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -120,15 +139,10 @@ const WorkshopDetails = () => {
     e.preventDefault();
     
     try {
-      const validationResult = registrationSchema.safeParse(formData);
+      // Validate form using our custom validation function
+      const errors = validateForm(formData);
       
-      if (!validationResult.success) {
-        const errors: Record<string, string> = {};
-        validationResult.error.errors.forEach(err => {
-          if (err.path[0]) {
-            errors[err.path[0].toString()] = err.message;
-          }
-        });
+      if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         return;
       }
@@ -144,7 +158,7 @@ const WorkshopDetails = () => {
         return;
       }
       
-      const { success, error } = await registerForWorkshop({
+      const result = await registerForWorkshop({
         workshop_id: workshop.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -152,6 +166,10 @@ const WorkshopDetails = () => {
         phone: formData.phone || null,
         user_id: user?.id || null
       });
+      
+      // Assuming registerForWorkshop returns { success, error } or similar
+      const success = result && !result.error;
+      const error = result?.error;
       
       if (success) {
         setRegistrationSuccess(true);
