@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Instagram, Twitter, Facebook, Linkedin } from 'lucide-react';
@@ -20,16 +19,16 @@ const Footer = () => {
               Empowering students with practical skills through interactive workshops designed for the digital age.
             </p>
             <div className="flex space-x-4 pt-2">
-              <a href="#" className="text-foreground/60 hover:text-primary transition-colors">
+              <a href="https://www.instagram.com/skillhub" target="_blank" rel="noopener noreferrer" className="text-foreground/60 hover:text-primary transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-foreground/60 hover:text-primary transition-colors">
+              <a href="https://twitter.com/skillhub" target="_blank" rel="noopener noreferrer" className="text-foreground/60 hover:text-primary transition-colors" aria-label="Twitter">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-foreground/60 hover:text-primary transition-colors">
+              <a href="https://facebook.com/skillhub" target="_blank" rel="noopener noreferrer" className="text-foreground/60 hover:text-primary transition-colors" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-foreground/60 hover:text-primary transition-colors">
+              <a href="https://linkedin.com/company/skillhub" target="_blank" rel="noopener noreferrer" className="text-foreground/60 hover:text-primary transition-colors" aria-label="LinkedIn">
                 <Linkedin size={20} />
               </a>
             </div>
