@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/contexts/AdminContext';
 import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
@@ -17,14 +18,36 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signIn, signInWithGoogle, user } = useAuth();
+  const { checkAdminStatus } = useAdmin();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the redirect path from query params, if any
+  const queryParams = new URLSearchParams(location.search);
+  const redirectPath = queryParams.get('redirect') || '/';
 
   useEffect(() => {
-    // If user is already logged in, redirect to home page
+    // If user is already logged in, redirect to home page or specified path
     if (user) {
-      navigate('/');
+      if (redirectPath.includes('/admin')) {
+        // If trying to access admin, check admin status first
+        checkAdminStatus().then(isAdmin => {
+          if (isAdmin) {
+            navigate(redirectPath);
+          } else {
+            navigate('/');
+            toast({
+              title: "Access Denied",
+              description: "You don't have admin privileges",
+              variant: "destructive"
+            });
+          }
+        });
+      } else {
+        navigate(redirectPath);
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectPath, checkAdminStatus, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +58,7 @@ const Login = () => {
     setIsLoading(false);
     
     if (!error) {
-      // The auth context will handle navigation and success toast
+      // The auth context will handle navigation based on redirectPath
     }
   };
 
@@ -43,6 +66,15 @@ const Login = () => {
     setIsLoading(true);
     await signInWithGoogle();
     setIsLoading(false);
+  };
+
+  const handleAdminLogin = () => {
+    setEmail('admin@workshops.com');
+    setPassword('admin123');
+    toast({
+      title: "Admin Credentials Set",
+      description: "You can now sign in as an admin",
+    });
   };
 
   return (
@@ -145,6 +177,27 @@ const Login = () => {
             >
               <FcGoogle className="mr-2 h-5 w-5" />
               Sign in with Google
+            </Button>
+            
+            {/* Admin Login Option */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Admin Access</span>
+              </div>
+            </div>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+              onClick={handleAdminLogin}
+            >
+              <span className="flex items-center gap-2">
+                Use Admin Credentials
+              </span>
             </Button>
           </form>
           

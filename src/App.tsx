@@ -3,8 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminProvider } from "./contexts/AdminContext";
+import { useAuth } from "./contexts/AuthContext";
+import { useAdmin } from "./contexts/AdminContext";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -23,32 +26,61 @@ import AdminOverview from "./pages/admin/Overview";
 
 const queryClient = new QueryClient();
 
+// Protected Route for Admin pages
+const AdminRoute = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  
+  if (authLoading || adminLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-slate-600">Checking permissions...</span>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/login?redirect=/admin" replace />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Outlet />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/workshops" element={<Workshops />} />
-            <Route path="/workshops/:id" element={<WorkshopDetails />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/profile" element={<UserProfile />} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />}>
-              <Route index element={<AdminOverview />} />
-              <Route path="workshops" element={<AdminWorkshops />} />
-              <Route path="workshops/:id/attendees" element={<AdminWorkshopAttendees />} />
-              <Route path="users" element={<AdminUsers />} />
-            </Route>
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AdminProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/workshops" element={<Workshops />} />
+              <Route path="/workshops/:id" element={<WorkshopDetails />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/profile" element={<UserProfile />} />
+              
+              {/* Admin Routes protected by AdminRoute */}
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminDashboard />}>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="workshops" element={<AdminWorkshops />} />
+                  <Route path="workshops/:id/attendees" element={<AdminWorkshopAttendees />} />
+                  <Route path="users" element={<AdminUsers />} />
+                </Route>
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AdminProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
