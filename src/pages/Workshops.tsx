@@ -161,8 +161,8 @@ const Workshops = () => {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Enhanced hero section with actual image - reduced height */}
-        <div className="relative rounded-2xl bg-gradient-to-r from-primary/90 via-indigo-600/90 to-accent/90 text-white p-6 mb-8 overflow-hidden">
+        {/* Enhanced hero section with actual image - reduced height on mobile */}
+        <div className="relative rounded-2xl bg-gradient-to-r from-primary/90 via-indigo-600/90 to-accent/90 text-white p-4 md:p-6 mb-8 overflow-hidden">
           {/* Background pattern overlay */}
           <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cg%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%3E%3Cg%20fill%3D%27%23ffffff%27%20fill-opacity%3D%270.4%27%3E%3Cpath%20d%3D%27M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%27%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')]"></div>
           
@@ -170,40 +170,40 @@ const Workshops = () => {
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
           <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
           
-          <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center">
-            {/* Content section */}
+          <div className="relative z-10 flex flex-col lg:flex-row gap-4 md:gap-6 items-center">
+            {/* Content section - more compact on mobile */}
             <div className="flex-1">
-              <div className="mb-4">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              <div className="mb-3 md:mb-4">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2">
                   Discover Workshops
                 </h1>
-                <p className="text-white/80 text-lg max-w-2xl mb-4">
+                <p className="text-white/80 text-sm md:text-lg max-w-2xl mb-2 md:mb-4">
                   Explore our upcoming workshops and enhance your skills
                 </p>
               </div>
               
-              {/* Workshop stats */}
-              <div className="flex gap-4 mb-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.total}</p>
+              {/* Workshop stats - hidden on small mobile, visible on medium screens and up */}
+              <div className="hidden sm:flex gap-3 md:gap-4 mb-3 md:mb-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1.5 md:p-2 text-center">
+                  <p className="text-lg md:text-xl font-bold">{workshopStats.total}</p>
                   <p className="text-xs text-white/70">Workshops</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.upcoming}</p>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1.5 md:p-2 text-center">
+                  <p className="text-lg md:text-xl font-bold">{workshopStats.upcoming}</p>
                   <p className="text-xs text-white/70">Upcoming</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.instructors}</p>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1.5 md:p-2 text-center">
+                  <p className="text-lg md:text-xl font-bold">{workshopStats.instructors}</p>
                   <p className="text-xs text-white/70">Instructors</p>
                 </div>
               </div>
               
-              {/* Featured categories */}
-              <div className="flex flex-wrap gap-3 mb-4">
-                {featuredCategories.map((category, index) => (
+              {/* Featured categories - fewer items on mobile */}
+              <div className="flex flex-wrap gap-2 md:gap-3 mb-3 md:mb-4">
+                {featuredCategories.slice(0, window.innerWidth < 640 ? 2 : 3).map((category, index) => (
                   <div 
                     key={index}
-                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm"
+                    className="flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm"
                   >
                     {category.icon}
                     <span>{category.name}</span>
@@ -219,15 +219,15 @@ const Workshops = () => {
                     placeholder="Search workshops..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10 bg-background/80 backdrop-blur-sm border-white/20 focus:border-white/40"
+                    className="pr-10 bg-background/80 backdrop-blur-sm border-white/20 focus:border-white/40 h-9 md:h-10"
                   />
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
             </div>
             
-            {/* Actual image section - using reliable external image source */}
-            <div className="flex-1 max-w-md h-48 lg:h-56 rounded-lg overflow-hidden">
+            {/* Actual image section - smaller on mobile */}
+            <div className="flex-1 max-w-md h-32 sm:h-40 md:h-48 lg:h-56 rounded-lg overflow-hidden">
               <img 
                 src={DEFAULT_BANNER_IMAGE}
                 alt="People collaborating in a workshop" 
