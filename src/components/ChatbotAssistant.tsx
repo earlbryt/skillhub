@@ -42,7 +42,7 @@ const ChatbotAssistant = () => {
     if (isMinimized) {
       setIsMinimized(false);
     } else {
-      setIsOpen(!isOpen);
+    setIsOpen(!isOpen);
     }
   };
 
@@ -119,13 +119,13 @@ const ChatbotAssistant = () => {
 
       {/* Chat window */}
       <AnimatePresence>
-        {isOpen && (
+      {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className={`fixed bottom-28 md:bottom-32 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[65vh] max-h-[550px]'}`}
+            className={`fixed bottom-24 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[70vh] max-h-[600px]'}`}
           >
             {/* Chat header */}
             <div 
@@ -149,16 +149,16 @@ const ChatbotAssistant = () => {
               >
                 {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
               </Button>
-            </div>
+          </div>
 
             {!isMinimized && (
               <>
                 {/* Chat messages */}
-                <ScrollArea className="flex-1 p-4 h-[calc(65vh-140px)] max-h-[calc(550px-140px)]">
+                <ScrollArea className="flex-1 p-4 h-[calc(70vh-140px)] max-h-[calc(600px-140px)]">
                   <div className="space-y-4">
                     {messages.filter(m => m.role !== 'system').map((message, index) => (
-                      <div
-                        key={index}
+              <div
+                key={index}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
@@ -173,8 +173,8 @@ const ChatbotAssistant = () => {
                             dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
                           />
                         </div>
-                      </div>
-                    ))}
+              </div>
+            ))}
                     {isLoading && (
                       <div className="flex justify-start">
                         <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-muted rounded-tl-none">
@@ -186,7 +186,7 @@ const ChatbotAssistant = () => {
                       </div>
                     )}
                     <div ref={messagesEndRef} />
-                  </div>
+          </div>
                 </ScrollArea>
 
                 {/* Chat input */}
@@ -196,13 +196,13 @@ const ChatbotAssistant = () => {
                       ref={inputRef}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Type your message..."
+              placeholder="Type your message..."
                       className="flex-1"
                       disabled={isLoading}
-                    />
-                    <Button 
+            />
+            <Button
                       type="submit" 
-                      size="icon" 
+              size="icon"
                       disabled={isLoading || !input.trim()}
                       className={`rounded-full ${!input.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
@@ -211,13 +211,13 @@ const ChatbotAssistant = () => {
                       ) : (
                         <Send className="h-5 w-5" />
                       )}
-                    </Button>
-                  </div>
+            </Button>
+          </div>
                 </form>
               </>
             )}
           </motion.div>
-        )}
+      )}
       </AnimatePresence>
     </>
   );
