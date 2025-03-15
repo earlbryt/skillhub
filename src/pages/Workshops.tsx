@@ -40,6 +40,9 @@ const featuredCategories = [
   { name: 'Business', icon: <BookOpen className="h-5 w-5" /> },
 ];
 
+// Default banner image URL - using a reliable external source to avoid deployment issues
+const DEFAULT_BANNER_IMAGE = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80";
+
 const Workshops = () => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,16 +123,30 @@ const Workshops = () => {
 
   // Map Workshop to the format expected by WorkshopCard
   const mapWorkshopForCard = (workshop: Workshop) => {
-    return {
+    // Create a safe copy to avoid TypeScript errors
+    const workshopData = {
       ...workshop,
-      // Add any missing properties that WorkshopCard expects
       date: formatDateFromISO(workshop.start_date),
       time: formatTimeFromISO(workshop.start_date),
-      // Use type assertion to avoid TypeScript errors
-      category: (workshop as any).category || 'Workshop',
-      enrolled: (workshop as any).registered_count || 0,
-      image: (workshop as any).image_url || '/placeholder-workshop.jpg'
+      category: 'Workshop',
+      enrolled: 0,
+      image: DEFAULT_BANNER_IMAGE
     };
+    
+    // Safely add optional properties if they exist
+    if ('category' in workshop) {
+      workshopData.category = (workshop as any).category;
+    }
+    
+    if ('registered_count' in workshop) {
+      workshopData.enrolled = (workshop as any).registered_count;
+    }
+    
+    if ('image_url' in workshop && (workshop as any).image_url) {
+      workshopData.image = (workshop as any).image_url;
+    }
+    
+    return workshopData;
   };
 
   // Get workshop stats
@@ -209,16 +226,12 @@ const Workshops = () => {
               </div>
             </div>
             
-            {/* Actual image section */}
+            {/* Actual image section - using reliable external image source */}
             <div className="flex-1 max-w-md h-48 lg:h-56 rounded-lg overflow-hidden">
               <img 
-                src="/workshop-banner.jpg" 
+                src={DEFAULT_BANNER_IMAGE}
                 alt="People collaborating in a workshop" 
                 className="w-full h-full object-cover rounded-lg shadow-lg"
-                onError={(e) => {
-                  // Fallback image if the main one fails to load
-                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80";
-                }}
               />
             </div>
           </div>
