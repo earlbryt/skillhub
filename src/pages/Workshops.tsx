@@ -11,8 +11,8 @@ import { getWorkshops } from '@/services/workshopService';
 import { Workshop } from '@/types/supabase';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Search, Calendar, MapPin, Filter, Clock, Users, Sparkles, BookOpen, Lightbulb, Zap } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { Search, Calendar, MapPin, Filter, Clock, Users, Sparkles } from 'lucide-react';
+import { format, isFuture, isPast, isToday } from 'date-fns';
 import WorkshopCard from '@/components/WorkshopCard';
 
 // Workshop categories for filtering
@@ -32,16 +32,6 @@ const geometricPatternClasses = `
   after:absolute after:inset-0 after:bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0px,rgba(255,255,255,0.05)_2px,transparent_2px,transparent_8px),repeating-linear-gradient(135deg,rgba(255,255,255,0.05)_0px,rgba(255,255,255,0.05)_2px,transparent_2px,transparent_8px)]
   after:z-0 after:opacity-30
 `;
-
-// Featured workshop categories with icons
-const featuredCategories = [
-  { name: 'Technology', icon: <Zap className="h-5 w-5" /> },
-  { name: 'Design', icon: <Lightbulb className="h-5 w-5" /> },
-  { name: 'Business', icon: <BookOpen className="h-5 w-5" /> },
-];
-
-// Default banner image URL - using a reliable external source to avoid deployment issues
-const DEFAULT_BANNER_IMAGE = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80";
 
 const Workshops = () => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -98,23 +88,11 @@ const Workshops = () => {
     }
   });
 
-  // Format date from ISO string
-  const formatDateFromISO = (isoString: string) => {
+  const formatDate = (dateString: string) => {
     try {
-      const date = parseISO(isoString);
-      return format(date, 'MMM d, yyyy');
+      return format(new Date(dateString), 'MMM d, yyyy • h:mm a');
     } catch (e) {
-      return isoString;
-    }
-  };
-
-  // Format time from ISO string
-  const formatTimeFromISO = (isoString: string) => {
-    try {
-      const date = parseISO(isoString);
-      return format(date, 'h:mm a');
-    } catch (e) {
-      return '';
+      return dateString;
     }
   };
 
@@ -123,37 +101,15 @@ const Workshops = () => {
 
   // Map Workshop to the format expected by WorkshopCard
   const mapWorkshopForCard = (workshop: Workshop) => {
-    // Create a safe copy to avoid TypeScript errors
-    const workshopData = {
+    return {
       ...workshop,
-      date: formatDateFromISO(workshop.start_date),
-      time: formatTimeFromISO(workshop.start_date),
-      category: 'Workshop',
-      enrolled: 0,
-      image: DEFAULT_BANNER_IMAGE
+      // Add any missing properties that WorkshopCard expects
+      date: workshop.start_date,
+      time: format(new Date(workshop.start_date), 'h:mm a'),
+      category: workshop.category || 'Workshop',
+      enrolled: workshop.registered_count || 0,
+      image: workshop.image_url || '/placeholder-workshop.jpg'
     };
-    
-    // Safely add optional properties if they exist
-    if ('category' in workshop) {
-      workshopData.category = (workshop as any).category;
-    }
-    
-    if ('registered_count' in workshop) {
-      workshopData.enrolled = (workshop as any).registered_count;
-    }
-    
-    if ('image_url' in workshop && (workshop as any).image_url) {
-      workshopData.image = (workshop as any).image_url;
-    }
-    
-    return workshopData;
-  };
-
-  // Get workshop stats
-  const workshopStats = {
-    total: workshops.length,
-    upcoming: workshops.filter(w => new Date(w.start_date) > new Date()).length,
-    instructors: [...new Set(workshops.map(w => w.instructor))].length
   };
 
   return (
@@ -161,78 +117,35 @@ const Workshops = () => {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Enhanced hero section with actual image - reduced height */}
-        <div className="relative rounded-2xl bg-gradient-to-r from-primary/90 via-indigo-600/90 to-accent/90 text-white p-6 mb-8 overflow-hidden">
+        {/* Hero section with search */}
+        <div className="relative rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 text-white p-8 mb-8 overflow-hidden">
           {/* Background pattern overlay */}
           <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cg%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%3E%3Cg%20fill%3D%27%23ffffff%27%20fill-opacity%3D%270.4%27%3E%3Cpath%20d%3D%27M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%27%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')]"></div>
           
-          {/* Animated decorative elements */}
-          <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+          {/* Decorative elements */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
           <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
           
-          <div className="relative z-10 flex flex-col lg:flex-row gap-6 items-center">
-            {/* Content section */}
-            <div className="flex-1">
-              <div className="mb-4">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                  Discover Workshops
-                </h1>
-                <p className="text-white/80 text-lg max-w-2xl mb-4">
-                  Explore our upcoming workshops and enhance your skills
-                </p>
-              </div>
-              
-              {/* Workshop stats */}
-              <div className="flex gap-4 mb-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.total}</p>
-                  <p className="text-xs text-white/70">Workshops</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.upcoming}</p>
-                  <p className="text-xs text-white/70">Upcoming</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center">
-                  <p className="text-xl font-bold">{workshopStats.instructors}</p>
-                  <p className="text-xs text-white/70">Instructors</p>
-                </div>
-              </div>
-              
-              {/* Featured categories */}
-              <div className="flex flex-wrap gap-3 mb-4">
-                {featuredCategories.map((category, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm"
-                  >
-                    {category.icon}
-                    <span>{category.name}</span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Compact search bar */}
-              <div className="flex justify-start">
-                <div className="relative w-full max-w-md">
-                  <Input
-                    type="text"
-                    placeholder="Search workshops..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10 bg-background/80 backdrop-blur-sm border-white/20 focus:border-white/40"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-            </div>
+          <div className="relative z-10">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              Discover Workshops
+            </h1>
+            <p className="text-white/80 text-lg max-w-2xl mb-6">
+              Explore our upcoming workshops and enhance your skills with hands-on learning experiences
+            </p>
             
-            {/* Actual image section - using reliable external image source */}
-            <div className="flex-1 max-w-md h-48 lg:h-56 rounded-lg overflow-hidden">
-              <img 
-                src={DEFAULT_BANNER_IMAGE}
-                alt="People collaborating in a workshop" 
-                className="w-full h-full object-cover rounded-lg shadow-lg"
-              />
+            {/* Compact search bar */}
+            <div className="flex justify-center mb-8">
+              <div className="relative w-full max-w-md">
+                <Input
+                  type="text"
+                  placeholder="Search workshops..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10 bg-background/80 backdrop-blur-sm"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
           </div>
         </div>
