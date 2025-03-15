@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/contexts/AdminContext';
 import { FcGoogle } from 'react-icons/fc';
-import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -66,103 +65,6 @@ const Login = () => {
     setIsLoading(true);
     await signInWithGoogle();
     setIsLoading(false);
-  };
-
-  const handleAdminLogin = async () => {
-    // Set the admin credentials
-    const adminEmail = 'admin@workshops.com';
-    const adminPassword = 'admin123';
-    
-    setEmail(adminEmail);
-    setPassword(adminPassword);
-    
-    toast({
-      title: "Admin Credentials Set",
-      description: "You can now sign in as an admin",
-    });
-    
-    // Check if this admin email already exists as a user
-    const { data: userData, error: userError } = await supabase.auth.signInWithPassword({
-      email: adminEmail,
-      password: adminPassword,
-    });
-    
-    if (userError) {
-      // Admin user doesn't exist, try to sign up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: adminEmail,
-        password: adminPassword,
-      });
-      
-      if (signUpError) {
-        toast({
-          title: "Error",
-          description: "Failed to create admin user: " + signUpError.message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // If signup was successful and we have a user, make them an admin
-      if (signUpData && signUpData.user) {
-        // Insert into admin_users table
-        const { error: adminError } = await supabase
-          .from('admin_users')
-          .insert([{ user_id: signUpData.user.id }]);
-        
-        if (adminError) {
-          toast({
-            title: "Error",
-            description: "Failed to set admin privileges: " + adminError.message,
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Admin user created successfully",
-          });
-        }
-      }
-    } else if (userData && userData.user) {
-      // User exists, check if they are already an admin
-      const { data: adminData, error: adminCheckError } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('user_id', userData.user.id)
-        .single();
-      
-      if (adminCheckError && adminCheckError.code !== 'PGRST116') {
-        // Real error, not just "no rows returned"
-        toast({
-          title: "Error",
-          description: "Failed to check admin status: " + adminCheckError.message,
-          variant: "destructive"
-        });
-      } else if (!adminData) {
-        // User exists but is not an admin, make them an admin
-        const { error: adminInsertError } = await supabase
-          .from('admin_users')
-          .insert([{ user_id: userData.user.id }]);
-        
-        if (adminInsertError) {
-          toast({
-            title: "Error",
-            description: "Failed to set admin privileges: " + adminInsertError.message,
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Admin privileges granted",
-          });
-        }
-      } else {
-        toast({
-          title: "Admin Ready",
-          description: "This user already has admin privileges",
-        });
-      }
-    }
   };
 
   return (
@@ -265,27 +167,6 @@ const Login = () => {
             >
               <FcGoogle className="mr-2 h-5 w-5" />
               Sign in with Google
-            </Button>
-            
-            {/* Admin Login Option */}
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Admin Access</span>
-              </div>
-            </div>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
-              onClick={handleAdminLogin}
-            >
-              <span className="flex items-center gap-2">
-                Use Admin Credentials
-              </span>
             </Button>
           </form>
           

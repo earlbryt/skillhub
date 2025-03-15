@@ -1,23 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, User, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, UserPlus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
 
 const SignUp = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signUp, signInWithGoogle, user } = useAuth();
@@ -33,29 +28,16 @@ const SignUp = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsLoading(true);
     
-    const { error } = await signUp(email, password, firstName, lastName);
+    const { error } = await signUp(email, password);
     
     setIsLoading(false);
     
     if (!error) {
       // Clear form
-      setFirstName('');
-      setLastName('');
       setEmail('');
       setPassword('');
-      setConfirmPassword('');
     }
   };
 
@@ -77,40 +59,6 @@ const SignUp = () => {
           </div>
           
           <form onSubmit={handleSignUp} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input 
-                    id="firstName"
-                    type="text" 
-                    placeholder="Enter your first name" 
-                    className="pl-10"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input 
-                    id="lastName"
-                    type="text" 
-                    placeholder="Enter your last name" 
-                    className="pl-10"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -147,30 +95,6 @@ const SignUp = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input 
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"} 
-                  placeholder="Confirm your password" 
-                  className="pl-10"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-                <button 
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
