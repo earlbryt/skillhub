@@ -1,33 +1,60 @@
 
-import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const location = useLocation();
+  
+  // Get the current page title based on the route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/admin') return 'Dashboard';
+    if (path.includes('/admin/workshops')) return 'Workshop Management';
+    if (path.includes('/admin/users')) return 'User Management';
+    if (path.includes('/admin/settings')) return 'Settings';
+    return 'Admin Panel';
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="mx-auto px-4 py-4">
-        <Button variant="outline" asChild className="mb-4">
-          <Link to="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
-            <ArrowLeft size={16} />
-            Back to Site
-          </Link>
-        </Button>
+    <div className="flex h-screen bg-blue-50">
+      <SidebarProvider>
+        <AdminSidebar />
         
-        <h1 className="text-3xl font-bold mb-6 text-slate-900">Admin Dashboard</h1>
-        
-        <SidebarProvider>
-          <div className="flex min-h-[calc(100vh-160px)] w-full rounded-xl overflow-hidden shadow-sm bg-white border border-slate-200">
-            <AdminSidebar />
-            <main className="flex-1 p-6 bg-white">
-              <Outlet />
-            </main>
-          </div>
-        </SidebarProvider>
-      </div>
+        {/* Main content with offset for fixed sidebar */}
+        <div className="flex-1 flex flex-col ml-16 overflow-hidden">
+          {/* Header */}
+          <header className="bg-white p-4 flex justify-between items-center shadow-sm">
+            <h1 className="text-xl font-bold">{getPageTitle()}</h1>
+            <div className="flex items-center gap-4">
+              <div className="relative hidden md:block">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="py-2 px-4 pr-10 border rounded-md w-64"
+                />
+                <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
+              </div>
+              <button className="p-2 text-gray-500">
+                <Bell size={20} />
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                  A
+                </div>
+                <span className="font-medium hidden sm:inline">Admin</span>
+              </div>
+            </div>
+          </header>
+
+          {/* Dashboard content */}
+          <main className="flex-1 overflow-auto p-6">
+            <Outlet />
+          </main>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };

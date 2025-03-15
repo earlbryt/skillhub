@@ -1,27 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
-  Eye, 
   Search, 
   Plus,
-  ArrowUp,
-  ArrowDown,
+  Eye,
   Users,
   Clock,
   MapPin,
-  Calendar,
-  CalendarClock
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -29,20 +20,6 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip
-} from 'recharts';
 
 type WorkshopWithRegistrations = Workshop & {
   registrations_count: number;
@@ -138,216 +115,154 @@ const AdminWorkshops = () => {
     return format(new Date(dateString), 'h:mm a');
   };
   
-  // Handle sorting
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
+  // Get status badge style
+  const getStatusBadge = (status: string) => {
+    if (status === 'active') return 'bg-green-100 text-green-800';
+    if (status === 'upcoming') return 'bg-blue-100 text-blue-800';
+    return 'bg-gray-100 text-gray-800';
   };
-  
-  // Prepare chart data
-  const chartData = workshops.map(workshop => ({
-    name: workshop.title.length > 20 ? workshop.title.substring(0, 20) + '...' : workshop.title,
-    registrations: workshop.registrations_count,
-    capacity: workshop.capacity,
-    fill: workshop.registrations_count >= workshop.capacity ? '#f43f5e' : 
-          workshop.registrations_count >= workshop.capacity * 0.8 ? '#f59e0b' : '#6366f1'
-  }));
   
   return (
     <div>
+      {/* Workshops Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Workshops</h2>
-          <p className="text-slate-500">Manage your workshops and view registrations</p>
+          <h2 className="text-xl font-bold">Workshops</h2>
+          <p className="text-sm text-gray-500">Total {workshops.length} workshops available</p>
         </div>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-          <Plus size={16} /> Add Workshop
+        <Button className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2">
+          <Plus size={16} /> 
+          Add Workshop
         </Button>
       </div>
       
-      {/* Registration Overview Chart */}
-      <Card className="mb-8 p-4">
-        <div className="mb-4">
-          <h3 className="text-lg font-medium text-slate-900">Registration Overview</h3>
-          <p className="text-sm text-slate-500">Workshop registrations vs. capacity</p>
-        </div>
-        <div className="h-72">
-          {chartData.length > 0 ? (
-            <ChartContainer 
-              config={{
-                registrations: { color: '#6366f1' },
-                capacity: { color: '#cbd5e1' },
-              }}
-            >
-              <BarChart data={chartData.slice(0, 6)} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  angle={-45}
-                  textAnchor="end"
-                  tickMargin={10}
-                />
-                <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="registrations" name="Registrations" radius={[4, 4, 0, 0]} maxBarSize={60} />
-                <Bar dataKey="capacity" name="Capacity" radius={[4, 4, 0, 0]} maxBarSize={60} />
-              </BarChart>
-            </ChartContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-slate-400">
-              No workshop data available
-            </div>
-          )}
-        </div>
-      </Card>
-      
       {/* Search and filter */}
-      <Card className="mb-6">
-        <div className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
-            <Input
-              placeholder="Search workshops..."
-              className="pl-10 border-slate-200"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search workshops by title, description or location..."
+            className="w-full py-2 px-4 pr-10 border rounded-md"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
         </div>
-      </Card>
+      </div>
       
       {/* Workshops table */}
-      <Card className="overflow-hidden">
-        <div className="rounded-md border border-slate-200">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead 
-                  className="cursor-pointer hover:text-indigo-600 transition-colors"
-                  onClick={() => handleSort('title')}
-                >
-                  <div className="flex items-center">
-                    Workshop
-                    {sortField === 'title' && (
-                      sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:text-indigo-600 transition-colors"
-                  onClick={() => handleSort('start_date')}
-                >
-                  <div className="flex items-center">
-                    Date
-                    {sortField === 'start_date' && (
-                      sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Registration
-                  </div>
-                </TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Workshop</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Date & Time</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Location</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Registration</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                <tr>
+                  <td colSpan={6} className="py-8 text-center">
                     <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                      <span className="ml-2 text-slate-500">Loading...</span>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-500">Loading...</span>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : filteredWorkshops.length > 0 ? (
                 filteredWorkshops.map((workshop) => (
-                  <TableRow key={workshop.id} className="hover:bg-slate-50">
-                    <TableCell>
-                      <div className="font-medium text-slate-900">{workshop.title}</div>
-                      <div className="text-sm text-slate-500 line-clamp-1">{workshop.description}</div>
-                    </TableCell>
-                    <TableCell>
+                  <tr key={workshop.id} className="border-b hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="font-medium text-gray-900">{workshop.title}</div>
+                      <div className="text-sm text-gray-500 line-clamp-1">{workshop.description}</div>
+                    </td>
+                    <td className="py-3 px-4">
                       <div className="flex flex-col">
-                        <div className="flex items-center text-slate-700">
-                          <Calendar className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                        <div className="flex items-center text-gray-700">
+                          <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
                           {formatDate(workshop.start_date)}
                         </div>
-                        <div className="flex items-center text-sm text-slate-500">
-                          <Clock className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
                           {formatTime(workshop.start_date)}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center text-slate-700">
-                        <MapPin className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center text-gray-700">
+                        <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
                         {workshop.location}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="py-3 px-4">
                       <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1.5 text-slate-400" />
+                        <Users className="h-4 w-4 mr-1.5 text-gray-400" />
                         <span className={`font-medium ${
                           workshop.registrations_count >= workshop.capacity 
-                            ? 'text-rose-600' 
+                            ? 'text-red-600' 
                             : workshop.registrations_count >= workshop.capacity * 0.8
-                              ? 'text-amber-600'
-                              : 'text-indigo-600'
+                              ? 'text-orange-600'
+                              : 'text-blue-600'
                         }`}>
                           {workshop.registrations_count}
                         </span>
-                        <span className="text-slate-400 mx-1">/</span>
-                        <span className="text-slate-600">{workshop.capacity}</span>
+                        <span className="text-gray-400 mx-1">/</span>
+                        <span className="text-gray-600">{workshop.capacity}</span>
                       </div>
                       {workshop.registrations_count >= workshop.capacity && (
-                        <div className="text-xs text-rose-600 mt-1">
+                        <div className="text-xs text-red-600 mt-1">
                           At capacity
                         </div>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        workshop.registration_status === 'active' ? 'default' : 
-                        workshop.registration_status === 'upcoming' ? 'secondary' : 'outline'
-                      } className={
-                        workshop.registration_status === 'active' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 
-                        workshop.registration_status === 'upcoming' ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 
-                        'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(workshop.registration_status || '')}`}>
                         {workshop.registration_status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" asChild className="border-slate-200 text-slate-700 hover:text-indigo-700 hover:border-indigo-200">
-                        <Link to={`/admin/workshops/${workshop.id}/attendees`}>
+                      </span>
+                    </td>
+                    <td className="text-right py-3 px-4">
+                      <Button variant="outline" size="sm" asChild className="border-gray-200 text-gray-700 hover:text-blue-700 hover:border-blue-200">
+                        <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
                           <Eye className="h-4 w-4" />
                           <span className="ml-1.5">Attendees</span>
                         </Link>
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))
               ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-slate-500">
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">
                     No workshops found
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
-      </Card>
+        
+        {/* Pagination */}
+        {filteredWorkshops.length > 0 && (
+          <div className="flex justify-between items-center p-4 text-sm">
+            <p>Page 1 of 1</p>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
+                <ChevronLeft size={14} />
+                <span>Previous</span>
+              </button>
+              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
