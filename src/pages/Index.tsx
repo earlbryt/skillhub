@@ -14,60 +14,6 @@ import { format } from 'date-fns';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 
-// Helper function to determine skill level based on workshop description
-const determineSkillLevel = (description: string): string => {
-  const lowerDesc = description.toLowerCase();
-  if (lowerDesc.includes('advanced') || lowerDesc.includes('expert')) {
-    return 'Advanced';
-  } else if (lowerDesc.includes('intermediate')) {
-    return 'Intermediate';
-  } else {
-    return 'Beginner';
-  }
-};
-
-// Helper function to generate outcome based on workshop title and description
-const generateOutcome = (title: string, description: string): string => {
-  const lowerTitle = title.toLowerCase();
-  
-  if (lowerTitle.includes('web') || lowerTitle.includes('coding')) {
-    return 'Build a responsive website';
-  } else if (lowerTitle.includes('data') || lowerTitle.includes('analytics')) {
-    return 'Analyze real-world datasets';
-  } else if (lowerTitle.includes('design') || lowerTitle.includes('ui') || lowerTitle.includes('ux')) {
-    return 'Create user-centered designs';
-  } else if (lowerTitle.includes('marketing')) {
-    return 'Develop marketing strategies';
-  } else if (lowerTitle.includes('business')) {
-    return 'Create a business plan';
-  } else {
-    // Extract a short outcome from the description
-    const sentences = description.split(/[.!?]+/);
-    const shortSentence = sentences.find(s => s.length > 10 && s.length < 60);
-    return shortSentence ? shortSentence.trim() : 'Gain practical skills';
-  }
-};
-
-// Helper function to calculate workshop duration
-const calculateDuration = (startDate: string, endDate: string): string => {
-  try {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const durationMs = end.getTime() - start.getTime();
-    const hours = Math.round(durationMs / (1000 * 60 * 60));
-    
-    if (hours < 1) {
-      return "< 1 hour";
-    } else if (hours === 1) {
-      return "1 hour";
-    } else {
-      return `${hours} hours`;
-    }
-  } catch (e) {
-    return "3 hours"; // Default fallback
-  }
-};
-
 const Index = () => {
   const [featuredWorkshops, setFeaturedWorkshops] = useState<Workshop[]>([]);
   const [upcomingWorkshop, setUpcomingWorkshop] = useState<Workshop | null>(null);
@@ -167,37 +113,22 @@ const Index = () => {
               </div>
             ) : featuredWorkshops.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredWorkshops.map((workshop, index) => {
-                  // Generate a random rating between 4.0 and 5.0
-                  const randomRating = 4.0 + Math.random();
-                  const roundedRating = Math.round(randomRating * 10) / 10;
-                  
-                  // Determine popularity based on workshop details
-                  const popularityOptions = ["High demand", "Limited seats", "Filling fast", "Popular"];
-                  const randomPopularity = popularityOptions[Math.floor(Math.random() * popularityOptions.length)];
-                  
-                  return (
-                    <WorkshopCard 
-                      key={workshop.id} 
-                      workshop={{
-                        id: workshop.id,
-                        title: workshop.title,
-                        category: workshop.instructor || 'Workshop',
-                        date: format(new Date(workshop.start_date), 'MMMM d, yyyy'),
-                        time: `${format(new Date(workshop.start_date), 'h:mm a')} - ${format(new Date(workshop.end_date), 'h:mm a')}`,
-                        capacity: workshop.capacity,
-                        enrolled: Math.floor(Math.random() * workshop.capacity), // This would be replaced with actual data in a real app
-                        image: workshop.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80',
-                        isFeatured: index < 2, // Make the first two workshops featured
-                        skillLevel: determineSkillLevel(workshop.description),
-                        outcome: generateOutcome(workshop.title, workshop.description),
-                        duration: calculateDuration(workshop.start_date, workshop.end_date),
-                        rating: roundedRating,
-                        popularity: randomPopularity
-                      }}
-                    />
-                  );
-                })}
+                {featuredWorkshops.map((workshop, index) => (
+                  <WorkshopCard 
+                    key={workshop.id} 
+                    workshop={{
+                      id: workshop.id,
+                      title: workshop.title,
+                      category: workshop.instructor || 'Workshop',
+                      date: format(new Date(workshop.start_date), 'MMMM d, yyyy'),
+                      time: `${format(new Date(workshop.start_date), 'h:mm a')} - ${format(new Date(workshop.end_date), 'h:mm a')}`,
+                      capacity: workshop.capacity,
+                      enrolled: Math.floor(Math.random() * workshop.capacity), // This would be replaced with actual data in a real app
+                      image: workshop.image_url || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80',
+                      isFeatured: index < 2 // Make the first two workshops featured
+                    }}
+                  />
+                ))}
               </div>
             ) : (
               <div className="text-center py-10">

@@ -123,14 +123,6 @@ const Workshops = () => {
 
   // Map Workshop to the format expected by WorkshopCard
   const mapWorkshopForCard = (workshop: Workshop) => {
-    // Generate a random rating between 4.0 and 5.0
-    const randomRating = 4.0 + Math.random();
-    const roundedRating = Math.round(randomRating * 10) / 10;
-    
-    // Determine popularity based on workshop details
-    const popularityOptions = ["High demand", "Limited seats", "Filling fast", "Popular"];
-    const randomPopularity = popularityOptions[Math.floor(Math.random() * popularityOptions.length)];
-    
     // Create a safe copy to avoid TypeScript errors
     const workshopData = {
       ...workshop,
@@ -138,12 +130,7 @@ const Workshops = () => {
       time: formatTimeFromISO(workshop.start_date),
       category: 'Workshop',
       enrolled: 0,
-      image: DEFAULT_BANNER_IMAGE,
-      skillLevel: determineSkillLevel(workshop.description),
-      outcome: generateOutcome(workshop.title, workshop.description),
-      duration: calculateDuration(workshop.start_date, workshop.end_date),
-      rating: roundedRating,
-      popularity: randomPopularity
+      image: DEFAULT_BANNER_IMAGE
     };
     
     // Safely add optional properties if they exist
@@ -160,60 +147,6 @@ const Workshops = () => {
     }
     
     return workshopData;
-  };
-
-  // Helper function to determine skill level based on workshop description
-  const determineSkillLevel = (description: string): string => {
-    const lowerDesc = description.toLowerCase();
-    if (lowerDesc.includes('advanced') || lowerDesc.includes('expert')) {
-      return 'Advanced';
-    } else if (lowerDesc.includes('intermediate')) {
-      return 'Intermediate';
-    } else {
-      return 'Beginner';
-    }
-  };
-
-  // Helper function to generate outcome based on workshop title and description
-  const generateOutcome = (title: string, description: string): string => {
-    const lowerTitle = title.toLowerCase();
-    
-    if (lowerTitle.includes('web') || lowerTitle.includes('coding')) {
-      return 'Build a responsive website';
-    } else if (lowerTitle.includes('data') || lowerTitle.includes('analytics')) {
-      return 'Analyze real-world datasets';
-    } else if (lowerTitle.includes('design') || lowerTitle.includes('ui') || lowerTitle.includes('ux')) {
-      return 'Create user-centered designs';
-    } else if (lowerTitle.includes('marketing')) {
-      return 'Develop marketing strategies';
-    } else if (lowerTitle.includes('business')) {
-      return 'Create a business plan';
-    } else {
-      // Extract a short outcome from the description
-      const sentences = description.split(/[.!?]+/);
-      const shortSentence = sentences.find(s => s.length > 10 && s.length < 60);
-      return shortSentence ? shortSentence.trim() : 'Gain practical skills';
-    }
-  };
-
-  // Helper function to calculate workshop duration
-  const calculateDuration = (startDate: string, endDate: string): string => {
-    try {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const durationMs = end.getTime() - start.getTime();
-      const hours = Math.round(durationMs / (1000 * 60 * 60));
-      
-      if (hours < 1) {
-        return "< 1 hour";
-      } else if (hours === 1) {
-        return "1 hour";
-      } else {
-        return `${hours} hours`;
-      }
-    } catch (e) {
-      return "3 hours"; // Default fallback
-    }
   };
 
   // Get workshop stats

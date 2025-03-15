@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -77,12 +76,30 @@ const UserProfile = () => {
           <div className="md:col-span-1">
             <div className="bg-card rounded-lg shadow-lg p-6 animate-fade-in">
               <div className="flex flex-col items-center text-center mb-6">
-                <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/20">
-                  <img 
-                    src={profile?.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} 
-                    alt={profile?.first_name || "User"} 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative w-24 h-24 mb-4">
+                  <div className="w-full h-full rounded-full overflow-hidden border-4 border-primary/20">
+                    <img 
+                      src="/avatars/generic-avatar.svg" 
+                      alt="Profile" 
+                      className="w-full h-full object-cover bg-muted"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
+                        target.className = "w-full h-full object-cover bg-muted p-4";
+                      }}
+                    />
+                  </div>
+                  <Button 
+                    variant="secondary" 
+                    size="icon" 
+                    className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-md"
+                    onClick={() => toast({
+                      title: "Coming Soon",
+                      description: "Profile photo upload will be available soon.",
+                    })}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  </Button>
                 </div>
                 <h2 className="text-2xl font-bold">
                   {profile ? `${profile.first_name || ''} ${profile.last_name || ''}` : 'Guest User'}
