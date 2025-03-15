@@ -5,24 +5,44 @@ import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateChatResponse, ChatMessage, getWorkshopSystemPrompt } from '@/services/groqService';
+import { generateChatResponse, ChatMessage } from '@/services/groqService';
+import { generateSystemPromptWithWorkshopData } from '@/services/chatbotService';
 import { useToast } from '@/hooks/use-toast';
 
 const ChatbotAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'system', content: getWorkshopSystemPrompt() },
     { 
       role: 'assistant', 
       content: 'Hi there! 👋 I\'m WorkshopBot, your Workshop Hub assistant. How can I help you today?' 
     }
   ]);
+  const [systemPrompt, setSystemPrompt] = useState<string>('');
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Initialize system prompt with workshop data
+  useEffect(() => {
+    const initializeSystemPrompt = async () => {
+      try {
+        const prompt = await generateSystemPromptWithWorkshopData();
+        setSystemPrompt(prompt);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error initializing system prompt:', error);
+        // Fallback to a basic system prompt if there's an error
+        setSystemPrompt('You are a helpful assistant for Workshop Hub, a platform where students can sign up for educational workshops.');
+        setIsInitialized(true);
+      }
+    };
+
+    initializeSystemPrompt();
+  }, []);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -42,7 +62,7 @@ const ChatbotAssistant = () => {
     if (isMinimized) {
       setIsMinimized(false);
     } else {
-    setIsOpen(!isOpen);
+      setIsOpen(!isOpen);
     }
   };
 
@@ -54,7 +74,7 @@ const ChatbotAssistant = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!input.trim()) return;
+    if (!input.trim() || !isInitialized) return;
     
     const userMessage: ChatMessage = { role: 'user', content: input };
     
@@ -64,11 +84,9 @@ const ChatbotAssistant = () => {
     setIsLoading(true);
     
     try {
-      // Get all messages except system prompt for display
-      const displayMessages = [...messages.filter(m => m.role !== 'system'), userMessage];
-      
-      // Get response from Groq
+      // Get response from Groq with system prompt
       const response = await generateChatResponse([
+        { role: 'system', content: systemPrompt },
         ...messages,
         userMessage
       ]);
@@ -119,13 +137,13 @@ const ChatbotAssistant = () => {
 
       {/* Chat window */}
       <AnimatePresence>
-      {isOpen && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className={`fixed bottom-24 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[70vh] max-h-[600px]'}`}
+            className={`fixed bottom-28 md:bottom-32 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[65vh] max-h-[550px]'}`}
           >
             {/* Chat header */}
             <div 
@@ -149,16 +167,25 @@ const ChatbotAssistant = () => {
               >
                 {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
               </Button>
-          </div>
+            </div>
 
             {!isMinimized && (
               <>
                 {/* Chat messages */}
-                <ScrollArea className="flex-1 p-4 h-[calc(70vh-140px)] max-h-[calc(600px-140px)]">
+                <ScrollArea className="flex-1 p-4 h-[calc(65vh-140px)] max-h-[calc(550px-140px)]">
                   <div className="space-y-4">
-                    {messages.filter(m => m.role !== 'system').map((message, index) => (
-              <div
-                key={index}
+                    {!isInitialized && (
+                      <div className="flex justify-center py-8">
+                        <div className="flex flex-col items-center space-y-2">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Loading workshop information...</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {isInitialized && messages.map((message, index) => (
+                      <div
+                        key={index}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
@@ -173,8 +200,9 @@ const ChatbotAssistant = () => {
                             dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
                           />
                         </div>
-              </div>
-            ))}
+                      </div>
+                    ))}
+                    
                     {isLoading && (
                       <div className="flex justify-start">
                         <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-muted rounded-tl-none">
@@ -186,7 +214,7 @@ const ChatbotAssistant = () => {
                       </div>
                     )}
                     <div ref={messagesEndRef} />
-          </div>
+                  </div>
                 </ScrollArea>
 
                 {/* Chat input */}
@@ -196,28 +224,28 @@ const ChatbotAssistant = () => {
                       ref={inputRef}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+                      placeholder="Type your message..."
                       className="flex-1"
-                      disabled={isLoading}
-            />
-            <Button
+                      disabled={isLoading || !isInitialized}
+                    />
+                    <Button 
                       type="submit" 
-              size="icon"
-                      disabled={isLoading || !input.trim()}
-                      className={`rounded-full ${!input.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      size="icon" 
+                      disabled={isLoading || !input.trim() || !isInitialized}
+                      className={`rounded-full ${(!input.trim() || !isInitialized) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {isLoading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
                         <Send className="h-5 w-5" />
                       )}
-            </Button>
-          </div>
+                    </Button>
+                  </div>
                 </form>
               </>
             )}
           </motion.div>
-      )}
+        )}
       </AnimatePresence>
     </>
   );
