@@ -18,15 +18,24 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // List of admin emails - in a real app, this would be stored in a database
-  const adminEmails = ['admin@example.com', 'admin@workshops.com'];
-
   const checkAdminStatus = async (): Promise<boolean> => {
     if (!user) return false;
     
     try {
-      // Check if user's email is in the admin list
-      const userIsAdmin = adminEmails.includes(user.email || '');
+      // Query the admin_users table to check if the current user is an admin
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+      
+      // If we found a record, the user is an admin
+      const userIsAdmin = !!data;
       setIsAdmin(userIsAdmin);
       return userIsAdmin;
     } catch (error) {
