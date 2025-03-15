@@ -3,11 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AdminProvider } from "./contexts/AdminContext";
 import { useAuth } from "./contexts/AuthContext";
 import { useAdmin } from "./contexts/AdminContext";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,17 @@ import AdminUsers from "./pages/admin/Users";
 import AdminOverview from "./pages/admin/Overview";
 
 const queryClient = new QueryClient();
+
+// Scroll to top on every navigation
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 // Protected Route for Admin pages
 const AdminRoute = () => {
@@ -57,6 +69,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AdminProvider>
+            {/* Add ScrollToTop component to handle scrolling on route changes */}
+            <ScrollToTop />
             <Toaster />
             <Sonner />
             <Routes>

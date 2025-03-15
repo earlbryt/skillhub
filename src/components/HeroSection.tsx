@@ -7,6 +7,7 @@ import AnimatedBlob from '@/components/ui/animated-blob';
 import FeatureCard from '@/components/ui/feature-card';
 import FloatingBadge from '@/components/ui/floating-badge';
 import StatCard from '@/components/ui/stat-card';
+import { addStyleToElement } from '@/lib/element-utils';
 
 const HeroSection = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -27,11 +28,13 @@ const HeroSection = () => {
         const deltaX = (x - centerX) / 8;
         const deltaY = (y - centerY) / 8;
 
-        button.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        // Using the new utility to fix the error
+        addStyleToElement(button, { transform: `translate(${deltaX}px, ${deltaY}px)` });
       });
 
       button.addEventListener('mouseleave', () => {
-        (button as HTMLElement).style.transform = 'translate(0, 0)';
+        // Using the new utility to fix the error
+        addStyleToElement(button, { transform: 'translate(0, 0)' });
       });
     });
 
@@ -42,13 +45,6 @@ const HeroSection = () => {
       });
     };
   }, []);
-
-  const scrollToFeatured = () => {
-    const featuredSection = document.getElementById('featured-workshops');
-    if (featuredSection) {
-      featuredSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <section ref={heroRef} className="relative pt-32 pb-20 overflow-hidden">
@@ -106,15 +102,15 @@ const HeroSection = () => {
               that stand out in today's digital economy.
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - UPDATED */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Button 
                 size="lg" 
                 className="magnetic-button px-8 py-7 bg-gradient-to-r from-primary via-accent to-secondary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
                 asChild
               >
-                <Link to="/register">
-                  <span>Register Now</span>
+                <Link to="/workshops">
+                  <span>Browse Workshops</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
@@ -123,10 +119,12 @@ const HeroSection = () => {
                 variant="outline"
                 size="lg"
                 className="magnetic-button px-8 py-7 border-2 border-border hover:border-primary/20 hover:bg-primary/5 text-foreground transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
-                onClick={scrollToFeatured}
+                asChild
               >
-                <span>Browse Workshops</span>
-                <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                <Link to="/login">
+                  <span>Login</span>
+                  <GraduationCap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                </Link>
               </Button>
             </div>
 

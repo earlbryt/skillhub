@@ -104,13 +104,13 @@ const WorkshopCard = ({ workshop, className, style }: { workshop: WorkshopProps,
         <div className="flex justify-between items-center">
           <Button asChild variant="default" className="gap-1">
             <Link to={`/workshops/${id}`}>
-              Register <ArrowRight size={16} />
+              View Details <ArrowRight size={16} />
             </Link>
           </Button>
           
           <Button asChild variant="ghost" size="sm">
             <Link to={`/workshops/${id}`} className="text-primary">
-              Details
+              Enroll
             </Link>
           </Button>
         </div>

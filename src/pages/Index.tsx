@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Calendar, Clock, Users, CheckCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -20,6 +20,12 @@ const Index = () => {
   const [upcomingWorkshop, setUpcomingWorkshop] = useState<Workshop | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Scroll to top whenever page is navigated to
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
@@ -251,22 +257,25 @@ const Index = () => {
           </div>
         </section>
         
-        {/* CTA Section */}
+        {/* CTA Section - UPDATED */}
         <section className="py-20 bg-gradient-to-r from-primary to-accent text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6">Ready to Upgrade Your Skills?</h2>
             <p className="text-white/80 max-w-2xl mx-auto mb-8">
               Join thousands of students who have transformed their careers through our hands-on workshops. 
-              Register today and start your journey to success.
+              Browse our catalog today and start your journey to success.
             </p>
             <Button 
               size="lg" 
               variant="secondary" 
               className="bg-white text-primary hover:bg-white/90 btn-hover"
               asChild
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
             >
-              <Link to="/register">
-                Register Now <ChevronRight size={18} />
+              <Link to="/workshops">
+                Browse Workshops <ChevronRight size={18} />
               </Link>
             </Button>
           </div>

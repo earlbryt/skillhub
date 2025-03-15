@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,10 +9,12 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Users, DollarSign, AlertCircle, ArrowLeft, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import Footer from '@/components/Footer';
 import { z } from 'zod';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 const registrationSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -36,10 +39,16 @@ const WorkshopDetails = () => {
     phone: ''
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -146,6 +155,7 @@ const WorkshopDetails = () => {
       });
       
       if (success) {
+        setRegistrationSuccess(true);
         toast({
           title: "Registration Successful",
           description: `You have successfully registered for ${workshop.title}.`,
@@ -183,14 +193,47 @@ const WorkshopDetails = () => {
     }
   };
 
+  const formatDate = (date: string) => {
+    return format(new Date(date), 'EEEE, MMMM d, yyyy');
+  };
+
+  const formatTime = (date: string) => {
+    return format(new Date(date), 'h:mm a');
+  };
+
+  const getCapacityColor = () => {
+    const percentage = (registrationsCount / (workshop?.capacity || 1)) * 100;
+    if (percentage >= 90) return 'bg-red-500';
+    if (percentage >= 70) return 'bg-orange-500';
+    return 'bg-green-500';
+  };
+  
+  const getWorkshopStatusBadge = () => {
+    if (!workshop) return null;
+    
+    const now = new Date();
+    const startDate = new Date(workshop.start_date);
+    const endDate = new Date(workshop.end_date);
+    
+    if (now > endDate) {
+      return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">Completed</Badge>
+    } else if (now >= startDate) {
+      return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">In Progress</Badge>
+    } else if (registrationsCount >= workshop.capacity) {
+      return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">Full</Badge>
+    } else {
+      return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Upcoming</Badge>
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-blue-50">
         <Navbar />
         <div className="container mx-auto py-12 px-4">
           <div className="flex flex-col items-center justify-center h-64">
-            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-muted-foreground">Loading workshop details...</p>
+            <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-600">Loading workshop details...</p>
           </div>
         </div>
         <Footer />
@@ -200,12 +243,12 @@ const WorkshopDetails = () => {
 
   if (!workshop) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-blue-50">
         <Navbar />
         <div className="container mx-auto py-12 px-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Workshop Not Found</h1>
-            <p className="mt-2 text-muted-foreground">The workshop you're looking for doesn't exist or has been removed.</p>
+            <p className="mt-2 text-gray-600">The workshop you're looking for doesn't exist or has been removed.</p>
             <Button onClick={() => navigate('/workshops')} className="mt-6">
               View All Workshops
             </Button>
@@ -220,13 +263,102 @@ const WorkshopDetails = () => {
   const isWorkshopInPast = new Date(workshop.end_date) < new Date();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-blue-50">
       <Navbar />
 
       <div className="container mx-auto py-12 px-4">
+        {/* Back button */}
+        <div className="mb-6">
+          <Button variant="outline" size="sm" onClick={() => navigate('/workshops')} className="flex items-center gap-2 text-gray-700">
+            <ArrowLeft size={16} />
+            <span>Back to Workshops</span>
+          </Button>
+        </div>
+        
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
-            <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+            {/* Workshop header */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <h1 className="text-3xl font-bold text-gray-900">{workshop.title}</h1>
+                {getWorkshopStatusBadge()}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-start">
+                  <Calendar className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-gray-900">Date</div>
+                    <div className="text-gray-600">{formatDate(workshop.start_date)}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Clock className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-gray-900">Time</div>
+                    <div className="text-gray-600">
+                      {formatTime(workshop.start_date)} - {formatTime(workshop.end_date)}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <MapPin className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-gray-900">Location</div>
+                    <div className="text-gray-600">{workshop.location}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Users className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-gray-900">Capacity</div>
+                    <div className="text-gray-600">
+                      {registrationsCount} / {workshop.capacity} registered
+                    </div>
+                  </div>
+                </div>
+                
+                {workshop.instructor && (
+                  <div className="flex items-start">
+                    <User className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900">Instructor</div>
+                      <div className="text-gray-600">{workshop.instructor}</div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-start">
+                  <DollarSign className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium text-gray-900">Fee</div>
+                    <div className="text-gray-600">{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Capacity bar */}
+              <div className="mb-4">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium text-gray-700">Registration Capacity</span>
+                  <span className={`${isWorkshopFull ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+                    {registrationsCount}/{workshop.capacity} spots filled
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${getCapacityColor()}`}
+                    style={{ width: `${Math.min((registrationsCount / workshop.capacity) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Workshop image */}
+            <div className="aspect-video rounded-xl overflow-hidden bg-white shadow-md">
               {workshop.image_url ? (
                 <img 
                   src={workshop.image_url} 
@@ -240,67 +372,22 @@ const WorkshopDetails = () => {
               )}
             </div>
 
-            <div>
-              <h1 className="text-3xl font-bold">{workshop.title}</h1>
-              
-              <div className="flex flex-wrap gap-y-4 mt-4">
-                <div className="flex items-center mr-6">
-                  <Calendar className="h-5 w-5 text-primary mr-2" />
-                  <span>
-                    {format(new Date(workshop.start_date), 'MMMM d, yyyy')}
-                  </span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <Clock className="h-5 w-5 text-primary mr-2" />
-                  <span>
-                    {format(new Date(workshop.start_date), 'h:mm a')} - {format(new Date(workshop.end_date), 'h:mm a')}
-                  </span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <MapPin className="h-5 w-5 text-primary mr-2" />
-                  <span>{workshop.location}</span>
-                </div>
-                
-                <div className="flex items-center mr-6">
-                  <Users className="h-5 w-5 text-primary mr-2" />
-                  <span>{registrationsCount} / {workshop.capacity} registered</span>
-                </div>
-                
-                {workshop.instructor && (
-                  <div className="flex items-center mr-6">
-                    <User className="h-5 w-5 text-primary mr-2" />
-                    <span>Instructor: {workshop.instructor}</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center">
-                  <DollarSign className="h-5 w-5 text-primary mr-2" />
-                  <span>{workshop.price ? `GH₵${workshop.price.toFixed(2)}` : 'Free'}</span>
-                </div>
+            {/* Workshop Description */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">About this workshop</h2>
+              <div className="prose prose-blue max-w-none">
+                <p className="whitespace-pre-line text-gray-700">{workshop.description}</p>
               </div>
-            </div>
-
-            <div className="prose max-w-none">
-              <h2 className="text-xl font-bold">About this workshop</h2>
-              <p className="whitespace-pre-line">{workshop.description}</p>
             </div>
 
             <div className="md:hidden mt-8">
-              <div className="bg-card rounded-lg shadow-md p-6 border border-border">
-                <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
-                
-                {renderRegistrationForm()}
-              </div>
+              {renderRegistrationCard()}
             </div>
           </div>
 
           <div className="hidden md:block">
-            <div className="bg-card rounded-lg shadow-md p-6 border border-border sticky top-8">
-              <h2 className="text-xl font-bold mb-4">Register for this workshop</h2>
-              
-              {renderRegistrationForm()}
+            <div className="sticky top-8">
+              {renderRegistrationCard()}
             </div>
           </div>
         </div>
@@ -310,24 +397,46 @@ const WorkshopDetails = () => {
     </div>
   );
 
+  function renderRegistrationCard() {
+    return (
+      <Card className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Register for this workshop</h2>
+          <p className="text-gray-600 text-sm">
+            {!isWorkshopFull && !isWorkshopInPast && !alreadyRegistered && `${workshop.capacity - registrationsCount} spots remaining`}
+          </p>
+        </div>
+        
+        <div className="p-6">
+          {renderRegistrationForm()}
+        </div>
+      </Card>
+    );
+  }
+
   function renderRegistrationForm() {
     if (isWorkshopInPast) {
       return (
-        <div className="bg-muted p-4 rounded-md">
-          <div className="flex items-center text-muted-foreground">
-            <AlertCircle className="h-5 w-5 mr-2" />
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <div className="flex items-center text-gray-700">
+            <AlertCircle className="h-5 w-5 mr-2 text-gray-500" />
             <p>This workshop has already ended.</p>
           </div>
         </div>
       );
     }
 
-    if (alreadyRegistered) {
+    if (registrationSuccess || alreadyRegistered) {
       return (
-        <div className="bg-green-50 p-4 rounded-md">
+        <div className="bg-green-50 p-4 rounded-lg">
           <div className="flex items-center text-green-700">
-            <AlertCircle className="h-5 w-5 mr-2 text-green-500" />
-            <p>You're already registered for this workshop!</p>
+            <Check className="h-5 w-5 mr-2 text-green-500" />
+            <p>You're registered for this workshop!</p>
+          </div>
+          <div className="mt-4">
+            <Button className="w-full" variant="outline" onClick={() => navigate('/workshops')}>
+              Browse More Workshops
+            </Button>
           </div>
         </div>
       );
@@ -335,10 +444,15 @@ const WorkshopDetails = () => {
 
     if (isWorkshopFull) {
       return (
-        <div className="bg-muted p-4 rounded-md">
-          <div className="flex items-center text-muted-foreground">
-            <AlertCircle className="h-5 w-5 mr-2" />
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <div className="flex items-center text-gray-700">
+            <AlertCircle className="h-5 w-5 mr-2 text-gray-500" />
             <p>This workshop is full. Please check back later or explore other workshops.</p>
+          </div>
+          <div className="mt-4">
+            <Button className="w-full" onClick={() => navigate('/workshops')}>
+              Browse Other Workshops
+            </Button>
           </div>
         </div>
       );
@@ -356,9 +470,10 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.first_name}
+            className="border-gray-300"
           />
           {formErrors.first_name && (
-            <p className="text-sm text-destructive">{formErrors.first_name}</p>
+            <p className="text-sm text-red-600">{formErrors.first_name}</p>
           )}
         </div>
 
@@ -372,9 +487,10 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.last_name}
+            className="border-gray-300"
           />
           {formErrors.last_name && (
-            <p className="text-sm text-destructive">{formErrors.last_name}</p>
+            <p className="text-sm text-red-600">{formErrors.last_name}</p>
           )}
         </div>
 
@@ -389,9 +505,10 @@ const WorkshopDetails = () => {
             required
             disabled={isSubmitting}
             aria-invalid={!!formErrors.email}
+            className="border-gray-300"
           />
           {formErrors.email && (
-            <p className="text-sm text-destructive">{formErrors.email}</p>
+            <p className="text-sm text-red-600">{formErrors.email}</p>
           )}
         </div>
 
@@ -404,12 +521,13 @@ const WorkshopDetails = () => {
             value={formData.phone || ''}
             onChange={handleInputChange}
             disabled={isSubmitting}
+            className="border-gray-300"
           />
         </div>
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full bg-blue-600 hover:bg-blue-700"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -425,9 +543,11 @@ const WorkshopDetails = () => {
           )}
         </Button>
 
-        <p className="text-sm text-muted-foreground text-center mt-2">
-          {workshop.capacity - registrationsCount} {workshop.capacity - registrationsCount === 1 ? 'spot' : 'spots'} remaining
-        </p>
+        {!isWorkshopFull && (
+          <p className="text-sm text-gray-500 text-center mt-2">
+            {workshop.capacity - registrationsCount} {workshop.capacity - registrationsCount === 1 ? 'spot' : 'spots'} remaining
+          </p>
+        )}
       </form>
     );
   }
