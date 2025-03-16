@@ -1,69 +1,86 @@
-# Welcome to your Lovable project
+# SkillHub - Workshop Management Platform
 
-## Project info
+SkillHub is a comprehensive platform designed to help students discover, register for, and manage educational workshops. The platform connects students with expert-led workshops across various disciplines, providing a seamless experience for skill development and learning.
 
-**URL**: https://lovable.dev/projects/66ba0502-87a9-4b24-9ba1-7bd01e93a16a
+![SkillHub Platform](https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80)
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### For Students
+- **Workshop Discovery**: Browse and search for workshops by category, date, or skill level
+- **Personalized Dashboard**: Track upcoming and past workshops
+- **Workshop Registration**: Easily register for workshops with just a few clicks
+- **Certificate Management**: Access and download certificates for completed workshops
+- **Referral Program**: Earn rewards by referring friends to the platform
+- **User Profiles**: Customize your profile and track your learning journey
 
-**Use Lovable**
+### For Workshop Organizers
+- **Workshop Management**: Create, edit, and manage workshop listings
+- **Attendee Tracking**: Monitor registrations and attendance
+- **Analytics Dashboard**: Gain insights into workshop performance and student engagement
+- **Certificate Generation**: Automatically generate certificates for workshop participants
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/66ba0502-87a9-4b24-9ba1-7bd01e93a16a) and start prompting.
+## 💻 Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-**Use your preferred IDE**
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/skillhub.git
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+# Navigate to the project directory
+cd skillhub
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Install dependencies
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:3000`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🔧 Usage Guide
 
-**Use GitHub Codespaces**
+### Student Journey
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Create an Account**: Sign up using your email or social media accounts
+2. **Browse Workshops**: Explore available workshops on the homepage or workshops page
+3. **Register for Workshops**: Click on a workshop card to view details and register
+4. **Attend Workshops**: Access workshop details from your dashboard
+5. **Earn Certificates**: Complete workshops to earn certificates
+6. **Refer Friends**: Share your referral code to earn rewards
 
-## What technologies are used for this project?
+### Workshop Navigation
 
-This project is built with .
+- **Homepage**: Featured workshops and platform highlights
+- **Workshops Page**: Complete listing of all available workshops with filtering options
+- **Workshop Details**: In-depth information about specific workshops
+- **User Profile**: Personal dashboard, registration history, and certificates
+- **Settings**: Account preferences and notification settings
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🛠️ Technology Stack
 
-## How can I deploy this project?
+- **Frontend**: React, TypeScript, TailwindCSS
+- **UI Components**: shadcn/ui
+- **Routing**: React Router
+- **State Management**: React Context API
+- **Authentication**: JWT-based authentication
+- **Styling**: Tailwind CSS with custom theming
 
-Simply open [Lovable](https://lovable.dev/projects/66ba0502-87a9-4b24-9ba1-7bd01e93a16a) and click on Share -> Publish.
+## ⚠️ Proprietary Software
 
-## I want to use a custom domain - is that possible?
+**IMPORTANT**: This software is proprietary and confidential. Unauthorized copying, distribution, modification, public display, or public performance of this software is strictly prohibited. All rights reserved.
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+This software is made available to authorized users only and is not open source. The source code and design are trade secrets and may not be shared or redistributed without explicit written permission from the copyright holder.
+
+## 📞 Support
+
+If you encounter any issues or have questions about using SkillHub, please contact our support team at support@skillhub.com.
+
+---
+
+SkillHub - Empowering students through expert-led workshops and skill development opportunities.
