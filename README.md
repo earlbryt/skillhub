@@ -1,24 +1,26 @@
 # SkillHub - Workshop Management Platform
 
-SkillHub is a comprehensive platform designed to help students discover, register for, and manage educational workshops. The platform connects students with expert-led workshops across various disciplines, providing a seamless experience for skill development and learning.
+SkillHub is an intuitive platform designed to help students discover, register for, and manage educational workshops. They can explore expert-led sessions, track their progress in real time, and earn digital certifications directly on the platform.
 
 ![Image](https://github.com/user-attachments/assets/f6fd12a1-fc37-4878-8c03-e8c7bdce228b)
 
-## 🚀 Features
+For administrators, SkillHub offers a feature-rich panel with extensive control over platform operations. Admins can manage users, oversee workshops, track attendees in real time, grant administrator privileges, and ensure seamless workshop management.
 
-### For Students
-- **Workshop Discovery**: Browse and search for workshops by category, date, or skill level
-- **Personalized Dashboard**: Track upcoming and past workshops
-- **Workshop Registration**: Easily register for workshops with just a few clicks
-- **Certificate Management**: Access and download certificates for completed workshops
-- **Referral Program**: Earn rewards by referring friends to the platform
-- **User Profiles**: Customize your profile and track your learning journey
 
-### For Workshop Organizers
-- **Workshop Management**: Create, edit, and manage workshop listings
-- **Attendee Tracking**: Monitor registrations and attendance
-- **Analytics Dashboard**: Gain insights into workshop performance and student engagement
-- **Certificate Generation**: Automatically generate certificates for workshop participants
+🚀 Features
+
+For Students
+Workshop Discovery – Find and register for workshops effortlessly
+Real-Time Progress Tracking – Monitor learning progress instantly
+Digital Certifications – Earn and store certifications within the platform
+Personalized Dashboard – Keep track of upcoming and completed workshops
+User Profiles – Customize your profile and showcase achievements
+For Administrators
+User Management – Add, remove, and oversee student and admin accounts
+Workshop Control – Create, edit, and manage workshop sessions
+Attendee Tracking – Monitor workshop attendance in real time
+Admin Privileges – Grant or revoke administrative access
+Comprehensive Oversight – Maintain full operational control for seamless workshop management
 
 ## 💻 Getting Started
 
@@ -66,10 +68,11 @@ The application will be available at `http://localhost:3000`.
 
 - **Frontend**: React, TypeScript, TailwindCSS
 - **UI Components**: shadcn/ui
-- **Routing**: React Router
 - **State Management**: React Context API
-- **Authentication**: JWT-based authentication
 - **Styling**: Tailwind CSS with custom theming
+- **Database**: Supabase
+- **AI Model**: Llama 3.3
+- **AI inference provider**: Groq
 
 ## ⚠️ Proprietary Software
 
