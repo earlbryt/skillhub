@@ -92,4 +92,4 @@ If you encounter any issues or have questions about using SkillHub, please conta
 
 ---
 
-SkillHub - Empowering students through expert-led workshops and skill development opportunities.
+Workshop Hub - Empowering students through expert-led workshops and skill development opportunities.
