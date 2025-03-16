@@ -226,6 +226,11 @@ const WorkshopDetails = () => {
     return format(new Date(date), 'h:mm a');
   };
   
+  const formatCurrency = (price: number | null) => {
+    if (!price) return 'Free';
+    return `GH₵${price.toFixed(2)}`;
+  };
+  
   const getWorkshopStatusBadge = () => {
     if (!workshop) return null;
     
@@ -452,41 +457,81 @@ const WorkshopDetails = () => {
       <Navbar />
 
       {/* Hero Section with Workshop Image */}
-      <div className="relative w-full h-[50vh] overflow-hidden">
+      <div className="relative w-full h-[60vh] overflow-hidden">
         {workshop.image_url ? (
-          <img 
-            src={workshop.image_url} 
-            alt={workshop.title}
-            className="absolute w-full h-full object-cover"
-          />
+          <>
+            <img 
+              src={workshop.image_url} 
+              alt={workshop.title}
+              className="absolute w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+          </>
         ) : (
-          <div className="absolute w-full h-full bg-gradient-to-r from-primary/90 to-primary/70"></div>
+          <div className="absolute w-full h-full bg-gradient-to-br from-primary/90 via-primary/70 to-blue-600/60">
+            <div className="absolute inset-0 opacity-20">
+              {[...Array(20)].map((_, i) => (
+                <div 
+                  key={i}
+                  className="absolute rounded-full bg-white/30"
+                  style={{
+                    width: `${Math.random() * 10 + 5}rem`,
+                    height: `${Math.random() * 10 + 5}rem`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    animation: `float ${Math.random() * 10 + 10}s infinite ease-in-out`,
+                    animationDelay: `${Math.random() * 5}s`
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10 backdrop-blur-[2px]"></div>
         
-        <div className="absolute bottom-0 left-0 w-full">
+        <div className="absolute inset-0 flex flex-col justify-end">
           <div className="container mx-auto px-4 pb-16 pt-20">
-            <div className="flex flex-col items-start gap-4">
+            <div className="flex flex-col items-start gap-4 max-w-4xl">
               <Button variant="outline" size="sm" onClick={() => navigate('/workshops')} 
                 className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white flex items-center gap-2">
                 <ArrowLeft size={16} />
                 <span>Back to Workshops</span>
               </Button>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 {getWorkshopStatusBadge()}
                 <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white border-white/20 px-3 py-1">
-                  {workshop.price ? `$${workshop.price.toFixed(2)}` : 'Free'}
+                  {formatCurrency(workshop.price)}
                 </Badge>
+                {workshop.instructor && (
+                  <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white border-white/20 px-3 py-1 flex items-center gap-1">
+                    <User size={14} />
+                    <span>{workshop.instructor}</span>
+                  </Badge>
+                )}
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-md max-w-4xl">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-md">
                 {workshop.title}
               </h1>
               
-              <p className="text-lg text-white/90 max-w-2xl">
+              <p className="text-lg text-white/90 max-w-3xl">
                 {workshop.description.substring(0, 150)}...
               </p>
+              
+              <div className="flex flex-wrap gap-4 mt-2">
+                <div className="flex items-center gap-2 text-white/90">
+                  <Calendar className="h-5 w-5" />
+                  <span>{formatDate(workshop.start_date)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <Clock className="h-5 w-5" />
+                  <span>{formatTime(workshop.start_date)} - {formatTime(workshop.end_date)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <MapPin className="h-5 w-5" />
+                  <span>{workshop.location}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -495,77 +540,9 @@ const WorkshopDetails = () => {
       <div className="container mx-auto py-12 px-4">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            {/* Workshop Information Card */}
+            {/* Workshop Information Card - Condensed */}
             <Card className="overflow-hidden border-none shadow-xl bg-white rounded-xl">
               <div className="p-6 md:p-8 space-y-8">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900">About this Workshop</h2>
-                    <p className="text-slate-500">Join this interactive learning experience</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      {[...Array(3)].map((_, i) => (
-                        <Avatar key={i} className="border-2 border-white w-8 h-8">
-                          <AvatarImage src={`https://i.pravatar.cc/100?img=${40+i}`} />
-                          <AvatarFallback>U{i}</AvatarFallback>
-                        </Avatar>
-                      ))}
-                    </div>
-                    <span className="text-sm text-slate-600 font-medium">People are joining</span>
-                  </div>
-                </div>
-
-                <Separator />
-                
-                {/* Workshop Details Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-slate-900">Date</div>
-                      <div className="text-slate-600">{formatDate(workshop.start_date)}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Clock className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-slate-900">Time</div>
-                      <div className="text-slate-600">
-                        {formatTime(workshop.start_date)} - {formatTime(workshop.end_date)}
-                      </div>
-                    </div>
-                  </div>
-                
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-slate-900">Location</div>
-                      <div className="text-slate-600">{workshop.location}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <DollarSign className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-slate-900">Fee</div>
-                      <div className="text-slate-600">{workshop.price ? `$${workshop.price.toFixed(2)}` : 'Free'}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
                 {/* Benefits Section */}
                 <div>
                   <h3 className="text-xl font-semibold text-slate-900 mb-6">What You'll Get</h3>
