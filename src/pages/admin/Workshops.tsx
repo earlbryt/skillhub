@@ -12,7 +12,9 @@ import {
   Calendar,
   Tag,
   DollarSign,
-  Bookmark
+  Bookmark,
+  Edit,
+  MoreHorizontal
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -21,6 +23,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useSearch } from './Dashboard';
+import WorkshopForm from '@/components/admin/WorkshopForm';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type WorkshopWithRegistrations = Workshop & {
   registrations_count: number;
@@ -36,67 +45,71 @@ const AdminWorkshops = () => {
   const { toast } = useToast();
   const { searchQuery } = useSearch();
   
-  useEffect(() => {
-    const fetchWorkshops = async () => {
-      try {
-        setLoading(true);
+  // Workshop form state
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | undefined>(undefined);
+  
+  const fetchWorkshops = async () => {
+    try {
+      setLoading(true);
+      
+      const { data: workshopsData, error } = await supabase
+        .from('workshops')
+        .select('*')
+        .order(sortField, { ascending: sortDirection === 'asc' });
         
-        const { data: workshopsData, error } = await supabase
-          .from('workshops')
-          .select('*')
-          .order(sortField, { ascending: sortDirection === 'asc' });
+      if (error) throw error;
+      
+      // Get registration counts for each workshop
+      const workshopsWithRegistrations = await Promise.all(
+        (workshopsData || []).map(async (workshop) => {
+          const { count, error: countError } = await supabase
+            .from('registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('workshop_id', workshop.id);
+            
+          if (countError) {
+            console.error('Error fetching registration count:', countError);
+            return { ...workshop, registrations_count: 0 };
+          }
           
-        if (error) throw error;
-        
-        // Get registration counts for each workshop
-        const workshopsWithRegistrations = await Promise.all(
-          (workshopsData || []).map(async (workshop) => {
-            const { count, error: countError } = await supabase
-              .from('registrations')
-              .select('*', { count: 'exact', head: true })
-              .eq('workshop_id', workshop.id);
-              
-            if (countError) {
-              console.error('Error fetching registration count:', countError);
-              return { ...workshop, registrations_count: 0 };
-            }
-            
-            // Determine status based on dates and capacity
-            const now = new Date();
-            const startDate = new Date(workshop.start_date);
-            const endDate = new Date(workshop.end_date);
-            
-            let status = '';
-            if (now > endDate) {
-              status = 'completed';
-            } else if (now >= startDate && now <= endDate) {
-              status = 'active';
-            } else {
-              status = 'upcoming';
-            }
-            
-            // Add status and count to workshop object
-            return { 
-              ...workshop, 
-              registrations_count: count || 0,
-              registration_status: status
-            };
-          })
-        );
-        
-        setWorkshops(workshopsWithRegistrations);
-      } catch (error) {
-        console.error('Error fetching workshops:', error);
-        toast({
-          title: "Error fetching workshops",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
+          // Determine status based on dates and capacity
+          const now = new Date();
+          const startDate = new Date(workshop.start_date);
+          const endDate = new Date(workshop.end_date);
+          
+          let status = '';
+          if (now > endDate) {
+            status = 'completed';
+          } else if (now >= startDate && now <= endDate) {
+            status = 'active';
+          } else {
+            status = 'upcoming';
+          }
+          
+          // Add status and count to workshop object
+          return { 
+            ...workshop, 
+            registrations_count: count || 0,
+            registration_status: status
+          };
+        })
+      );
+      
+      setWorkshops(workshopsWithRegistrations);
+    } catch (error) {
+      console.error('Error fetching workshops:', error);
+      toast({
+        title: "Error fetching workshops",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchWorkshops();
   }, [sortField, sortDirection, toast]);
 
@@ -109,7 +122,7 @@ const AdminWorkshops = () => {
       workshop.title.toLowerCase().includes(query) ||
       workshop.description.toLowerCase().includes(query) ||
       workshop.location.toLowerCase().includes(query) ||
-      workshop.instructor.toLowerCase().includes(query) ||
+      workshop.instructor?.toLowerCase().includes(query) ||
       (workshop.category && workshop.category.toLowerCase().includes(query)) ||
       workshop.registration_status?.toLowerCase().includes(query)
     );
@@ -139,6 +152,29 @@ const AdminWorkshops = () => {
     return <div className="w-2 h-2 rounded-full bg-gray-500 mr-1.5"></div>;
   };
   
+  // Handle opening the form for adding a new workshop
+  const handleAddWorkshop = () => {
+    setSelectedWorkshop(undefined);
+    setIsFormOpen(true);
+  };
+  
+  // Handle opening the form for editing an existing workshop
+  const handleEditWorkshop = (workshop: Workshop) => {
+    setSelectedWorkshop(workshop);
+    setIsFormOpen(true);
+  };
+  
+  // Handle form close
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setSelectedWorkshop(undefined);
+  };
+  
+  // Handle form success (refresh data)
+  const handleFormSuccess = () => {
+    fetchWorkshops();
+  };
+  
   return (
     <div className="bg-gray-50">
       {/* Workshops Header */}
@@ -152,7 +188,10 @@ const AdminWorkshops = () => {
             }
           </p>
         </div>
-        <Button className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2">
+        <Button 
+          className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2"
+          onClick={handleAddWorkshop}
+        >
           <Plus size={16} /> 
           Add Workshop
         </Button>
@@ -258,12 +297,45 @@ const AdminWorkshops = () => {
                   <Bookmark className="h-3.5 w-3.5 text-gray-400 mr-1" />
                   <span className="text-xs text-gray-500">ID: {workshop.id.substring(0, 8)}...</span>
                 </div>
-                <Button variant="outline" size="sm" asChild className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200">
-                  <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
-                    <Eye className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="ml-1">View Attendees</span>
-                  </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200"
+                    onClick={() => handleEditWorkshop(workshop)}
+                  >
+                    <Edit className="h-3.5 w-3.5 text-blue-500 mr-1" />
+                    <span>Edit</span>
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" asChild className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200">
+                    <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="ml-1">View Attendees</span>
+                    </Link>
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-gray-200 bg-white">
+                        <MoreHorizontal className="h-3.5 w-3.5 text-gray-500" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[160px]">
+                      <DropdownMenuItem className="text-xs cursor-pointer">
+                        <Eye className="h-3.5 w-3.5 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-xs cursor-pointer"
+                        onClick={() => handleEditWorkshop(workshop)}
+                      >
+                        <Edit className="h-3.5 w-3.5 mr-2" />
+                        Edit Workshop
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </Card>
           ))}
@@ -293,6 +365,14 @@ const AdminWorkshops = () => {
           </div>
         </div>
       )}
+      
+      {/* Workshop Form Dialog */}
+      <WorkshopForm
+        isOpen={isFormOpen}
+        onClose={handleFormClose}
+        onSuccess={handleFormSuccess}
+        workshop={selectedWorkshop}
+      />
     </div>
   );
 };
