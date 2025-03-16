@@ -213,14 +213,14 @@ const AdminOverview = () => {
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm h-auto">
-            <div className="flex flex-col h-full">
+          <Card key={index} className="bg-white shadow-md border-l-4 border-t-0 border-r-0 border-b-0 hover:shadow-lg transition-all duration-300" style={{ borderLeftColor: stat.color }}>
+            <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${stat.color} rounded-full flex items-center justify-center text-white`}>
+                <div className={`w-12 h-12 ${stat.color} rounded-full flex items-center justify-center text-white shadow-sm`}>
                   {stat.icon}
                 </div>
                 <button>
@@ -229,30 +229,32 @@ const AdminOverview = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-600 mb-1">{stat.title}</h3>
-                <p className="text-2xl font-bold mb-2">{stat.amount}</p>
+                <p className="text-2xl font-bold text-gray-900 mb-2">{stat.amount}</p>
                 <p className="text-xs text-gray-500">{stat.change}</p>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Recent Registrations */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="font-bold">Recent Registrations</h2>
-            <p className="text-sm text-gray-500">
-              {searchQuery 
-                ? `${filteredRegistrations.length} registrations found for "${searchQuery}"`
-                : `Showing ${stats.recentRegistrations.length} recent workshop registrations`
-              }
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button className="px-4 py-2 bg-blue-500 text-white rounded-md">
-              View All
-            </Button>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div className="bg-gray-50 p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Recent Registrations</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {searchQuery 
+                  ? `${filteredRegistrations.length} registrations found for "${searchQuery}"`
+                  : `Showing ${stats.recentRegistrations.length} recent workshop registrations`
+                }
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 shadow-sm">
+                View All
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -260,41 +262,41 @@ const AdminOverview = () => {
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">User Name</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Email</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Workshop</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Registration Date</th>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">User Name</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Email</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Workshop</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Status</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Registration Date</th>
               </tr>
             </thead>
             <tbody>
               {filteredRegistrations.length > 0 ? (
                 filteredRegistrations.map((registration) => (
-                  <tr key={registration.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
+                  <tr key={registration.id} className="border-b border-gray-200 hover:bg-blue-50 transition-colors duration-150">
+                    <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium shadow-sm">
                           {registration.first_name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-medium">{registration.first_name} {registration.last_name}</p>
+                          <p className="font-medium text-gray-900">{registration.first_name} {registration.last_name}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{registration.email}</td>
-                    <td className="py-3 px-4 text-sm font-medium">{registration.workshop_title}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(registration.status)}`}>
+                    <td className="py-4 px-6 text-sm text-gray-600">{registration.email}</td>
+                    <td className="py-4 px-6 text-sm font-medium text-blue-600">{registration.workshop_title}</td>
+                    <td className="py-4 px-6">
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(registration.status)} shadow-sm`}>
                         {formatStatus(registration.status)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{formatDate(registration.created_at)}</td>
+                    <td className="py-4 px-6 text-sm text-gray-600">{formatDate(registration.created_at)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500">
+                  <td colSpan={5} className="py-10 text-center text-gray-500">
                     {searchQuery 
                       ? `No registrations found matching "${searchQuery}"`
                       : "No recent registrations found"
@@ -305,6 +307,23 @@ const AdminOverview = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {filteredRegistrations.length > 0 && (
+          <div className="flex justify-between items-center p-6 border-t border-gray-200 text-sm bg-gray-50">
+            <p className="text-gray-600">Page 1 of 1</p>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 border border-gray-300 rounded-md bg-white flex items-center gap-1 text-gray-500 shadow-sm" disabled>
+                <ChevronLeft size={14} />
+                <span>Previous</span>
+              </button>
+              <button className="px-3 py-1 border border-transparent rounded-md bg-blue-500 text-white flex items-center gap-1 shadow-sm" disabled>
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

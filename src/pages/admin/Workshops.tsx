@@ -176,162 +176,155 @@ const AdminWorkshops = () => {
   };
   
   return (
-    <div className="bg-gray-50">
+    <div className="space-y-6">
       {/* Workshops Header */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold">Workshops</h2>
-          <p className="text-sm text-gray-500">
-            {searchQuery 
-              ? `${filteredWorkshops.length} workshops found for "${searchQuery}"`
-              : `Total ${workshops.length} workshops available`
-            }
-          </p>
+      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Workshops</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {searchQuery 
+                ? `${filteredWorkshops.length} workshops found for "${searchQuery}"`
+                : `Total ${workshops.length} workshops available`
+              }
+            </p>
+          </div>
+          <Button 
+            className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2 shadow-sm hover:bg-blue-600"
+            onClick={handleAddWorkshop}
+          >
+            <Plus size={16} /> 
+            Add Workshop
+          </Button>
         </div>
-        <Button 
-          className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2"
-          onClick={handleAddWorkshop}
-        >
-          <Plus size={16} /> 
-          Add Workshop
-        </Button>
       </div>
       
       {/* Workshops cards */}
       {loading ? (
-        <div className="flex justify-center items-center py-8 bg-white rounded-lg shadow-sm">
+        <div className="flex justify-center items-center py-12 bg-white rounded-lg shadow-md border border-gray-200">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-500">Loading workshops...</span>
+          <span className="ml-3 text-gray-600">Loading workshops...</span>
         </div>
       ) : filteredWorkshops.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {filteredWorkshops.map((workshop) => (
-            <Card key={workshop.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
-              <div className="p-3 border-b border-gray-100">
+            <Card key={workshop.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200 bg-white border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className={`px-2 py-0.5 rounded-full text-xs flex items-center ${getStatusBadge(workshop.registration_status || '')}`}>
+                    <div className="flex items-center mb-2">
+                      <span className={`px-2.5 py-1 rounded-full text-xs flex items-center font-medium ${getStatusBadge(workshop.registration_status || '')} shadow-sm`}>
                         {getStatusIcon(workshop.registration_status || '')}
                         {workshop.registration_status}
                       </span>
                       {workshop.price > 0 && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center">
-                          <DollarSign className="h-3 w-3 mr-1 text-emerald-500" />
-                          GH₵{workshop.price}
+                        <span className="ml-2 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center shadow-sm">
+                          <DollarSign className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
+                          GH₵{workshop.price.toFixed(2)}
                         </span>
                       )}
                       {workshop.category && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center">
-                          <Tag className="h-3 w-3 mr-1 text-gray-500" />
+                        <span className="ml-2 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center shadow-sm">
+                          <Tag className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
                           {workshop.category}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900">{workshop.title}</h3>
-                    <p className="text-xs text-gray-600 line-clamp-1 mb-2">{workshop.description}</p>
-                        </div>
-                  
-                  {/* Registration count badge */}
-                  <div className="ml-2 flex-shrink-0">
-                    <div className={`flex flex-col items-center justify-center rounded-md p-1.5 ${
-                      workshop.registrations_count >= workshop.capacity 
-                        ? 'bg-red-50 border border-red-200' 
-                        : workshop.registrations_count >= workshop.capacity * 0.8
-                          ? 'bg-orange-50 border border-orange-200'
-                          : 'bg-blue-50 border border-blue-200'
-                    }`}>
-                      <div className="flex items-center">
-                        <Users className={`h-4 w-4 mr-1 ${
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{workshop.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">{workshop.description}</p>
+                    
+                    <div className="flex flex-wrap gap-4 mb-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">Registration</span>
+                        <div className={`flex items-center text-sm font-medium ${
                           workshop.registrations_count >= workshop.capacity 
-                            ? 'text-red-500' 
-                            : workshop.registrations_count >= workshop.capacity * 0.8
-                              ? 'text-orange-500'
-                              : 'text-blue-500'
-                        }`} />
-                        <span className={`font-bold text-base ${
-                          workshop.registrations_count >= workshop.capacity 
-                            ? 'text-red-600' 
-                            : workshop.registrations_count >= workshop.capacity * 0.8
-                              ? 'text-orange-600'
-                              : 'text-blue-600'
+                          ? 'text-red-600' 
+                          : workshop.registrations_count >= workshop.capacity * 0.8 
+                          ? 'text-orange-600' 
+                          : 'text-blue-600'
                         }`}>
-                          {workshop.registrations_count}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500">of {workshop.capacity}</div>
-                      {workshop.registrations_count >= workshop.capacity && (
-                        <div className="text-xs font-medium text-red-600 mt-0.5">
-                          Full
+                          <Users className={`h-4 w-4 mr-1.5 ${
+                            workshop.registrations_count >= workshop.capacity 
+                            ? 'text-red-500' 
+                            : workshop.registrations_count >= workshop.capacity * 0.8 
+                            ? 'text-orange-500' 
+                            : 'text-blue-500'
+                          }`} />
+                          {workshop.registrations_count} / {workshop.capacity}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-gray-500">Date & Time</span>
-                    <div className="flex items-center text-sm text-gray-700">
-                      <Calendar className="h-3.5 w-3.5 mr-1 text-blue-500" />
-                      {formatDate(workshop.start_date)}
-                    </div>
-                    <div className="flex items-center text-xs text-gray-500">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-orange-500" />
-                      {formatTime(workshop.start_date)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <span className="text-xs text-gray-500">Location</span>
-                    <div className="flex items-center text-sm text-gray-700">
-                      <MapPin className="h-3.5 w-3.5 mr-1 text-red-500" />
-                      {workshop.location}
+                        <div className="text-xs text-gray-500">of {workshop.capacity}</div>
+                        {workshop.registrations_count >= workshop.capacity && (
+                          <div className="text-xs font-medium text-red-600 mt-0.5">
+                            Workshop is full
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">Date & Time</span>
+                        <div className="flex items-center text-sm text-gray-700">
+                          <Calendar className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
+                          {formatDate(workshop.start_date)}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                          <Clock className="h-3.5 w-3.5 mr-1.5 text-orange-500" />
+                          {formatTime(workshop.start_date)} - {formatTime(workshop.end_date)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">Location</span>
+                        <div className="flex items-center text-sm text-gray-700">
+                          <MapPin className="h-3.5 w-3.5 mr-1.5 text-red-500" />
+                          {workshop.location}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div className="px-3 py-2 bg-gray-100 flex justify-between items-center">
-                <div className="flex items-center">
-                  <Bookmark className="h-3.5 w-3.5 text-gray-400 mr-1" />
-                  <span className="text-xs text-gray-500">ID: {workshop.id.substring(0, 8)}...</span>
+              <div className="px-6 py-4 bg-gray-50 flex justify-between items-center">
+                <div className="flex items-center text-xs text-gray-500">
+                  <Bookmark className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
+                  <span>ID: {workshop.id.substring(0, 8)}...</span>
                 </div>
+                
                 <div className="flex items-center gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200"
                     onClick={() => handleEditWorkshop(workshop)}
+                    className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm"
                   >
-                    <Edit className="h-3.5 w-3.5 text-blue-500 mr-1" />
+                    <Edit className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
                     <span>Edit</span>
                   </Button>
                   
-                  <Button variant="outline" size="sm" asChild className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200">
-                        <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5 text-blue-500" />
-                      <span className="ml-1">View Attendees</span>
-                        </Link>
+                  <Button variant="outline" size="sm" asChild className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm">
+                    <Link to={`/admin/workshops/${workshop.id}/attendees`}>
+                      <Eye className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
+                      <span>Attendees</span>
+                    </Link>
                   </Button>
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-gray-200 bg-white">
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-200 bg-white shadow-sm">
                         <MoreHorizontal className="h-3.5 w-3.5 text-gray-500" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[160px]">
-                      <DropdownMenuItem className="text-xs cursor-pointer">
-                        <Eye className="h-3.5 w-3.5 mr-2" />
-                        View Details
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Link to={`/workshops/${workshop.id}`} className="flex items-center w-full">
+                          View Public Page
+                        </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-xs cursor-pointer"
-                        onClick={() => handleEditWorkshop(workshop)}
-                      >
-                        <Edit className="h-3.5 w-3.5 mr-2" />
-                        Edit Workshop
+                      <DropdownMenuItem>
+                        Export Attendees
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600">
+                        Delete Workshop
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -341,38 +334,40 @@ const AdminWorkshops = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500 border border-gray-200">
           {searchQuery 
             ? `No workshops found matching "${searchQuery}"`
-            : "No workshops found"
+            : "No workshops available"
           }
         </div>
       )}
-        
-        {/* Pagination */}
-        {filteredWorkshops.length > 0 && (
-        <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
-            <p>Page 1 of 1</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
-                <ChevronLeft size={14} />
-                <span>Previous</span>
-              </button>
-              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
-                <span>Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+      
+      {/* Pagination */}
+      {filteredWorkshops.length > 0 && (
+        <div className="flex justify-between items-center p-6 bg-white rounded-lg shadow-md text-sm border border-gray-200">
+          <p className="text-gray-600">Page 1 of 1</p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white flex items-center gap-1 text-gray-500 shadow-sm" disabled>
+              <ChevronLeft size={14} />
+              <span>Previous</span>
+            </button>
+            <button className="px-3 py-1 border border-transparent rounded-md bg-blue-500 text-white flex items-center gap-1 shadow-sm" disabled>
+              <span>Next</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
-        )}
+        </div>
+      )}
       
       {/* Workshop Form Dialog */}
-      <WorkshopForm
-        isOpen={isFormOpen}
-        onClose={handleFormClose}
-        onSuccess={handleFormSuccess}
-        workshop={selectedWorkshop}
-      />
+      {isFormOpen && (
+        <WorkshopForm
+          isOpen={isFormOpen}
+          onClose={handleFormClose}
+          workshop={selectedWorkshop}
+          onSuccess={handleFormSuccess}
+        />
+      )}
     </div>
   );
 };
