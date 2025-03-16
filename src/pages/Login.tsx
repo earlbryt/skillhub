@@ -158,16 +158,7 @@ const Login = () => {
               </div>
             </div>
             
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              <FcGoogle className="mr-2 h-5 w-5" />
-              Sign in with Google
-            </Button>
+           
           </form>
           
           <div className="mt-6 text-center text-sm">
