@@ -49,70 +49,70 @@ const AdminWorkshops = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | undefined>(undefined);
   
-  const fetchWorkshops = async () => {
-    try {
-      setLoading(true);
-      
-      const { data: workshopsData, error } = await supabase
-        .from('workshops')
-        .select('*')
-        .order(sortField, { ascending: sortDirection === 'asc' });
+    const fetchWorkshops = async () => {
+      try {
+        setLoading(true);
         
-      if (error) throw error;
-      
-      // Get registration counts for each workshop
-      const workshopsWithRegistrations = await Promise.all(
-        (workshopsData || []).map(async (workshop) => {
-          const { count, error: countError } = await supabase
-            .from('registrations')
-            .select('*', { count: 'exact', head: true })
-            .eq('workshop_id', workshop.id);
+        const { data: workshopsData, error } = await supabase
+          .from('workshops')
+          .select('*')
+          .order(sortField, { ascending: sortDirection === 'asc' });
+          
+        if (error) throw error;
+        
+        // Get registration counts for each workshop
+        const workshopsWithRegistrations = await Promise.all(
+          (workshopsData || []).map(async (workshop) => {
+            const { count, error: countError } = await supabase
+              .from('registrations')
+              .select('*', { count: 'exact', head: true })
+              .eq('workshop_id', workshop.id);
+              
+            if (countError) {
+              console.error('Error fetching registration count:', countError);
+              return { ...workshop, registrations_count: 0 };
+            }
             
-          if (countError) {
-            console.error('Error fetching registration count:', countError);
-            return { ...workshop, registrations_count: 0 };
-          }
-          
-          // Determine status based on dates and capacity
-          const now = new Date();
-          const startDate = new Date(workshop.start_date);
-          const endDate = new Date(workshop.end_date);
-          
-          let status = '';
-          if (now > endDate) {
-            status = 'completed';
-          } else if (now >= startDate && now <= endDate) {
-            status = 'active';
-          } else {
-            status = 'upcoming';
-          }
-          
-          // Add status and count to workshop object
-          return { 
-            ...workshop, 
-            registrations_count: count || 0,
-            registration_status: status
-          };
-        })
-      );
-      
-      setWorkshops(workshopsWithRegistrations);
-    } catch (error) {
-      console.error('Error fetching workshops:', error);
-      toast({
-        title: "Error fetching workshops",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+            // Determine status based on dates and capacity
+            const now = new Date();
+            const startDate = new Date(workshop.start_date);
+            const endDate = new Date(workshop.end_date);
+            
+            let status = '';
+            if (now > endDate) {
+              status = 'completed';
+            } else if (now >= startDate && now <= endDate) {
+              status = 'active';
+            } else {
+              status = 'upcoming';
+            }
+            
+            // Add status and count to workshop object
+            return { 
+              ...workshop, 
+              registrations_count: count || 0,
+              registration_status: status
+            };
+          })
+        );
+        
+        setWorkshops(workshopsWithRegistrations);
+      } catch (error) {
+        console.error('Error fetching workshops:', error);
+        toast({
+          title: "Error fetching workshops",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
   useEffect(() => {
     fetchWorkshops();
   }, [sortField, sortDirection, toast]);
-
+  
   // Filter workshops based on search query
   const filteredWorkshops = workshops.filter(workshop => {
     if (!searchQuery) return true;
@@ -230,7 +230,7 @@ const AdminWorkshops = () => {
                     </div>
                     <h3 className="text-base font-semibold text-gray-900">{workshop.title}</h3>
                     <p className="text-xs text-gray-600 line-clamp-1 mb-2">{workshop.description}</p>
-                  </div>
+                        </div>
                   
                   {/* Registration count badge */}
                   <div className="ml-2 flex-shrink-0">
@@ -309,10 +309,10 @@ const AdminWorkshops = () => {
                   </Button>
                   
                   <Button variant="outline" size="sm" asChild className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200">
-                    <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
+                        <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
                       <Eye className="h-3.5 w-3.5 text-blue-500" />
                       <span className="ml-1">View Attendees</span>
-                    </Link>
+                        </Link>
                   </Button>
                   
                   <DropdownMenu>
@@ -348,23 +348,23 @@ const AdminWorkshops = () => {
           }
         </div>
       )}
-      
-      {/* Pagination */}
-      {filteredWorkshops.length > 0 && (
+        
+        {/* Pagination */}
+        {filteredWorkshops.length > 0 && (
         <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
-          <p>Page 1 of 1</p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
-              <ChevronLeft size={14} />
-              <span>Previous</span>
-            </button>
-            <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
-              <span>Next</span>
-              <ChevronRight size={14} />
-            </button>
+            <p>Page 1 of 1</p>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
+                <ChevronLeft size={14} />
+                <span>Previous</span>
+              </button>
+              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       
       {/* Workshop Form Dialog */}
       <WorkshopForm
