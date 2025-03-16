@@ -1,10 +1,15 @@
-# SkillHub - Workshop Management Platform
+# Workshop Hub - Workshop Management Platform
 
-SkillHub is an intuitive platform designed to help students discover, register for, and manage educational workshops. They can explore expert-led sessions, track their progress in real time, and earn digital certifications directly on the platform.
+Workshop Hub is an intuitive platform designed to help students discover, register for, and manage educational workshops. They can explore expert-led sessions, track their progress in real time, and earn digital certifications directly on the platform.
 
 ![Image](https://github.com/user-attachments/assets/f6fd12a1-fc37-4878-8c03-e8c7bdce228b)
+![Image](https://github.com/user-attachments/assets/e5b6b217-3c50-4e63-a1de-a33fad25e8cf)
 
-For administrators, SkillHub offers a feature-rich panel with extensive control over platform operations. Admins can manage users, oversee workshops, track attendees in real time, grant administrator privileges, and ensure seamless workshop management.
+**For administrators**, Workshop Hub offers a feature-rich panel with extensive control over platform operations. Admins can manage users, oversee workshops, track attendees in real time, grant administrator privileges, and ensure seamless workshop management.
+
+![Image](https://github.com/user-attachments/assets/dcf88ae0-7157-4b41-a334-f6043a12f79c)
+![Image](https://github.com/user-attachments/assets/bf0728c8-0f47-4acd-b6ad-66dffd5011be)
+
 
 
 🚀 Features
