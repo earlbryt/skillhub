@@ -30,7 +30,13 @@ const AdminDashboard = () => {
         {/* Main content with dynamic offset for sidebar */}
         <div 
           className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+          style={{ 
+            position: 'absolute',
+            left: sidebarCollapsed ? '4rem' : '16rem',
+            right: 0,
+            top: 0,
+            bottom: 0
+          }}
         >
           {/* Header */}
           <header className="bg-white p-4 flex justify-between items-center shadow-sm">
@@ -58,7 +64,9 @@ const AdminDashboard = () => {
 
           {/* Dashboard content */}
           <main className="flex-1 overflow-auto p-6">
-            <Outlet />
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <Outlet />
+            </div>
           </main>
         </div>
       </SidebarProvider>

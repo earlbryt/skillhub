@@ -47,7 +47,7 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
         <SidebarGroup>
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center">
-              <div className="bg-blue-500 p-2 rounded-md flex-shrink-0">
+              <div className={`bg-blue-500 rounded-md flex items-center justify-center ${sidebarCollapsed ? 'w-8 h-8' : 'p-2'}`}>
                 <span className="text-white font-bold">WA</span>
               </div>
               <span className={`text-white font-bold ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
@@ -66,10 +66,11 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
                   className={({ isActive }) => `
                     flex items-center p-3 rounded-md cursor-pointer transition-all
                     ${isActive ? 'bg-blue-500/20 text-blue-500' : 'text-gray-400 hover:bg-gray-800'}
+                    ${sidebarCollapsed ? 'justify-center' : ''}
                   `}
                 >
                   <span className="flex-shrink-0"><item.icon size={20} /></span>
-                  <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                  <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
                     {item.title}
                   </span>
                 </NavLink>
@@ -78,10 +79,10 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
               {/* Logout button */}
               <button 
                 onClick={handleLogout}
-                className="flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 w-full text-left"
+                className={`flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 w-full text-left ${sidebarCollapsed ? 'justify-center' : ''}`}
               >
                 <span className="flex-shrink-0"><LogOut size={20} /></span>
-                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
                   Logout
                 </span>
               </button>
@@ -89,10 +90,10 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
               {/* Back to site button */}
               <NavLink
                 to="/"
-                className="flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 mt-4"
+                className={`flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 mt-4 ${sidebarCollapsed ? 'justify-center' : ''}`}
               >
                 <span className="flex-shrink-0"><ArrowLeft size={20} /></span>
-                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
                   Back to Site
                 </span>
               </NavLink>

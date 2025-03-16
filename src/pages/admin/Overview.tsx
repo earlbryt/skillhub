@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,24 +56,40 @@ const AdminOverview = () => {
           
         if (registrationsError) throw registrationsError;
         
-        // Fetch user count
-        const { count: userCount, error: userCountError } = await supabase
-          .from('registrations')
-          .select('email', { count: 'exact', head: true })
-          .is('user_id', null);
-          
-        if (userCountError) throw userCountError;
+        // Get unique emails from registrations to count total users
+        const uniqueEmails = new Set();
+        registrations?.forEach(registration => {
+          if (registration.email) {
+            uniqueEmails.add(registration.email);
+          }
+        });
+        
+        const totalUniqueUsers = uniqueEmails.size;
         
         // Process the data for dashboard statistics
         const now = new Date();
         
         // Count upcoming workshops
-        const upcomingWorkshops = workshops?.filter(w => new Date(w.start_date) > now).length || 0;
+        const upcomingWorkshops = workshops?.filter(w => new Date(w.start_date) > now) || [];
+        const upcomingWorkshopsCount = upcomingWorkshops.length;
         
-        // Calculate registration rate
-        const registrationRate = workshops?.length && registrations?.length 
-          ? Math.round((registrations.length / (workshops.reduce((sum, w) => sum + w.capacity, 0))) * 100) 
-          : 0;
+        // Calculate registration rate for upcoming workshops only
+        let registrationRate = 0;
+        if (upcomingWorkshopsCount > 0) {
+          // Get total capacity of upcoming workshops
+          const totalUpcomingCapacity = upcomingWorkshops.reduce((sum, w) => sum + w.capacity, 0);
+          
+          // Count registrations for upcoming workshops
+          const upcomingWorkshopIds = upcomingWorkshops.map(w => w.id);
+          const upcomingRegistrationsCount = registrations?.filter(
+            r => upcomingWorkshopIds.includes(r.workshop_id)
+          ).length || 0;
+          
+          // Calculate rate
+          registrationRate = totalUpcomingCapacity > 0 
+            ? Math.round((upcomingRegistrationsCount / totalUpcomingCapacity) * 100)
+            : 0;
+        }
         
         // Format recent registrations
         const recentRegistrations = (registrations || []).slice(0, 8).map(r => ({
@@ -88,9 +103,9 @@ const AdminOverview = () => {
         }));
         
         setStats({
-          totalUsers: userCount || 0,
+          totalUsers: totalUniqueUsers,
           totalWorkshops: workshops?.length || 0,
-          upcomingWorkshops,
+          upcomingWorkshops: upcomingWorkshopsCount,
           registrationRate,
           recentRegistrations,
         });
@@ -116,9 +131,28 @@ const AdminOverview = () => {
   
   // Get status badge style
   const getStatusBadge = (status: string) => {
-    if (status === 'confirmed') return 'bg-green-100 text-green-800';
-    if (status === 'waitlisted') return 'bg-yellow-100 text-yellow-800';
-    return 'bg-gray-100 text-gray-800';
+    if (!status) return 'bg-gray-100 text-gray-800';
+    
+    switch(status.toLowerCase()) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'waitlisted':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Format status text
+  const formatStatus = (status: string) => {
+    if (!status) return 'Registered';
+    
+    // Capitalize first letter
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
   // Stats cards data
@@ -126,14 +160,14 @@ const AdminOverview = () => {
     { 
       title: 'Total Users', 
       amount: stats.totalUsers, 
-      change: '+12.2% from last month', 
+      change: 'Unique registered users', 
       icon: <Users size={18} />, 
       color: 'bg-blue-500' 
     },
     { 
       title: 'Total Workshops', 
       amount: stats.totalWorkshops, 
-      change: '+3 from last month', 
+      change: `${stats.upcomingWorkshops} upcoming`, 
       icon: <Calendar size={18} />, 
       color: 'bg-green-500' 
     },
@@ -192,17 +226,9 @@ const AdminOverview = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold">Recent Registrations</h2>
-            <p className="text-sm text-gray-500">Showing recent workshop registrations</p>
+            <p className="text-sm text-gray-500">Showing {stats.recentRegistrations.length} recent workshop registrations</p>
           </div>
           <div className="flex gap-3">
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="py-2 px-4 pr-10 border rounded-md w-64"
-              />
-              <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
-            </div>
             <Button className="px-4 py-2 bg-blue-500 text-white rounded-md">
               View All
             </Button>
@@ -236,42 +262,25 @@ const AdminOverview = () => {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-500">{registration.email}</td>
-                    <td className="py-3 px-4">{registration.workshop_title}</td>
+                    <td className="py-3 px-4 text-sm font-medium">{registration.workshop_title}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(registration.status)}`}>
-                        {registration.status}
+                        {formatStatus(registration.status)}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{formatDate(registration.created_at)}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{formatDate(registration.created_at)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-500">
-                    No recent registrations
+                    No recent registrations found
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        {stats.recentRegistrations.length > 0 && (
-          <div className="flex justify-between items-center mt-4 text-sm">
-            <p>Page 1 of 1</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
-                <ChevronLeft size={14} />
-                <span>Previous</span>
-              </button>
-              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
-                <span>Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
