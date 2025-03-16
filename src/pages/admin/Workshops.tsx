@@ -180,7 +180,7 @@ const AdminWorkshops = () => {
       {/* Workshops Header */}
       <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
         <div className="flex justify-between items-center">
-          <div>
+        <div>
             <h2 className="text-xl font-bold text-gray-900">Workshops</h2>
             <p className="text-sm text-gray-500 mt-1">
               {searchQuery 
@@ -188,19 +188,19 @@ const AdminWorkshops = () => {
                 : `Total ${workshops.length} workshops available`
               }
             </p>
-          </div>
+        </div>
           <Button 
             className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2 shadow-sm hover:bg-blue-600"
             onClick={handleAddWorkshop}
           >
-            <Plus size={16} /> 
-            Add Workshop
-          </Button>
+          <Plus size={16} /> 
+          Add Workshop
+        </Button>
         </div>
       </div>
       
       {/* Workshops cards */}
-      {loading ? (
+              {loading ? (
         <div className="flex justify-center items-center py-12 bg-white rounded-lg shadow-md border border-gray-200">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-600">Loading workshops...</span>
@@ -238,10 +238,10 @@ const AdminWorkshops = () => {
                         <span className="text-xs text-gray-500 mb-1">Registration</span>
                         <div className={`flex items-center text-sm font-medium ${
                           workshop.registrations_count >= workshop.capacity 
-                          ? 'text-red-600' 
-                          : workshop.registrations_count >= workshop.capacity * 0.8 
-                          ? 'text-orange-600' 
-                          : 'text-blue-600'
+                            ? 'text-red-600' 
+                            : workshop.registrations_count >= workshop.capacity * 0.8
+                              ? 'text-orange-600'
+                              : 'text-blue-600'
                         }`}>
                           <Users className={`h-4 w-4 mr-1.5 ${
                             workshop.registrations_count >= workshop.capacity 
@@ -305,7 +305,7 @@ const AdminWorkshops = () => {
                     <Link to={`/admin/workshops/${workshop.id}/attendees`}>
                       <Eye className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
                       <span>Attendees</span>
-                    </Link>
+                        </Link>
                   </Button>
                   
                   <DropdownMenu>
@@ -341,23 +341,23 @@ const AdminWorkshops = () => {
           }
         </div>
       )}
-      
-      {/* Pagination */}
-      {filteredWorkshops.length > 0 && (
+        
+        {/* Pagination */}
+        {filteredWorkshops.length > 0 && (
         <div className="flex justify-between items-center p-6 bg-white rounded-lg shadow-md text-sm border border-gray-200">
           <p className="text-gray-600">Page 1 of 1</p>
-          <div className="flex gap-2">
+            <div className="flex gap-2">
             <button className="px-3 py-1 border border-gray-300 rounded-md bg-white flex items-center gap-1 text-gray-500 shadow-sm" disabled>
-              <ChevronLeft size={14} />
-              <span>Previous</span>
-            </button>
+                <ChevronLeft size={14} />
+                <span>Previous</span>
+              </button>
             <button className="px-3 py-1 border border-transparent rounded-md bg-blue-500 text-white flex items-center gap-1 shadow-sm" disabled>
-              <span>Next</span>
-              <ChevronRight size={14} />
-            </button>
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       
       {/* Workshop Form Dialog */}
       {isFormOpen && (

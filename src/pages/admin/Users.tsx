@@ -67,82 +67,82 @@ const AdminUsers = () => {
   }, [toast]);
   
   const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      
+      try {
+        setLoading(true);
+        
       // Get all registrations with workshop data
-      const { data: registrationsData, error: registrationsError } = await supabase
-        .from('registrations')
-        .select(`
+        const { data: registrationsData, error: registrationsError } = await supabase
+          .from('registrations')
+          .select(`
           id,
-          user_id,
-          first_name,
-          last_name,
-          email,
+            user_id,
+            first_name,
+            last_name,
+            email,
           phone,
           status,
-          created_at,
-          workshop:workshops(
-            id,
-            title,
-            start_date
-          )
-        `)
-        .order('created_at', { ascending: false });
+            created_at,
+            workshop:workshops(
+              id,
+              title,
+              start_date
+            )
+          `)
+          .order('created_at', { ascending: false });
+          
+        if (registrationsError) throw registrationsError;
         
-      if (registrationsError) throw registrationsError;
-      
-      // Process the data to group by user
-      const userMap = new Map<string, UserWithWorkshops>();
-      
-      registrationsData?.forEach(registration => {
-        // Use email as unique identifier since it's always present
-        const userKey = registration.email;
+        // Process the data to group by user
+        const userMap = new Map<string, UserWithWorkshops>();
         
-        if (!userMap.has(userKey)) {
+        registrationsData?.forEach(registration => {
+          // Use email as unique identifier since it's always present
+          const userKey = registration.email;
+          
+          if (!userMap.has(userKey)) {
           // For demo purposes, we'll set some default values for admin status
           // In a real app, this would come from a proper user management system
           const isAdmin = registration.email.includes('admin') || Math.random() < 0.2;
           
-          userMap.set(userKey, {
+            userMap.set(userKey, {
             id: registration.id,
-            email: registration.email,
-            first_name: registration.first_name,
-            last_name: registration.last_name,
-            created_at: registration.created_at,
+              email: registration.email,
+              first_name: registration.first_name,
+              last_name: registration.last_name,
+              created_at: registration.created_at,
             is_admin: isAdmin,
             is_active: true,
-            workshops: []
-          });
-        }
-        
-        // Add workshop to user's workshops if not already added
-        const user = userMap.get(userKey);
-        if (user && registration.workshop) {
-          const workshopExists = user.workshops.some(w => w.id === (registration.workshop as any).id);
-          if (!workshopExists) {
-            user.workshops.push({
-              id: (registration.workshop as any).id,
-              title: (registration.workshop as any).title,
-              start_date: (registration.workshop as any).start_date
+              workshops: []
             });
           }
-        }
-      });
-      
-      setUsers(Array.from(userMap.values()));
-    } catch (error) {
-      console.error('Error fetching users with workshops:', error);
-      toast({
-        title: "Error fetching users",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+          
+          // Add workshop to user's workshops if not already added
+          const user = userMap.get(userKey);
+          if (user && registration.workshop) {
+            const workshopExists = user.workshops.some(w => w.id === (registration.workshop as any).id);
+            if (!workshopExists) {
+              user.workshops.push({
+                id: (registration.workshop as any).id,
+                title: (registration.workshop as any).title,
+                start_date: (registration.workshop as any).start_date
+              });
+            }
+          }
+        });
+        
+        setUsers(Array.from(userMap.values()));
+      } catch (error) {
+        console.error('Error fetching users with workshops:', error);
+        toast({
+          title: "Error fetching users",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
   // Filter users based on search query and filters
   const filteredUsers = users.filter(user => {
     // Apply search filter
@@ -294,7 +294,7 @@ const AdminUsers = () => {
       {/* Users Header */}
       <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
+        <div>
             <h2 className="text-xl font-bold text-gray-900">Users</h2>
             <p className="text-sm text-gray-500 mt-1">
               {searchQuery || roleFilter
@@ -302,7 +302,7 @@ const AdminUsers = () => {
                 : `Total ${users.length} users registered`
               }
             </p>
-          </div>
+        </div>
           
           <div className="flex flex-wrap gap-2">
             {/* Filter dropdown */}
@@ -334,8 +334,8 @@ const AdminUsers = () => {
                     >
                       Regular Users
                     </button>
-                  </div>
-                  
+      </div>
+      
                   {roleFilter && (
                     <Button variant="outline" size="sm" className="w-full text-xs" onClick={clearFilters}>
                       Clear All Filters
@@ -376,9 +376,9 @@ const AdminUsers = () => {
         </div>
       ) : filteredUsers.length > 0 ? (
         <Card className="bg-white shadow-md border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">User</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Email</th>
@@ -386,9 +386,9 @@ const AdminUsers = () => {
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Joined</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Workshops</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+              </tr>
+            </thead>
+            <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id || user.email} className="border-b border-gray-200 hover:bg-blue-50 transition-colors duration-150">
                     <td className="py-4 px-4">
@@ -444,7 +444,7 @@ const AdminUsers = () => {
                           title="Edit User"
                         >
                           <Edit className="h-3.5 w-3.5 text-blue-500" />
-                        </Button>
+                          </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -458,11 +458,11 @@ const AdminUsers = () => {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination */}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
           <div className="flex justify-between items-center p-4 border-t border-gray-200 text-sm bg-gray-50">
             <p className="text-gray-600">
               <span>Page 1 of 1</span>
