@@ -9,18 +9,20 @@ For administrators, SkillHub offers a feature-rich panel with extensive control 
 
 🚀 Features
 
-For Students
-Workshop Discovery – Find and register for workshops effortlessly
-Real-Time Progress Tracking – Monitor learning progress instantly
-Digital Certifications – Earn and store certifications within the platform
-Personalized Dashboard – Keep track of upcoming and completed workshops
-User Profiles – Customize your profile and showcase achievements
-For Administrators
-User Management – Add, remove, and oversee student and admin accounts
-Workshop Control – Create, edit, and manage workshop sessions
-Attendee Tracking – Monitor workshop attendance in real time
-Admin Privileges – Grant or revoke administrative access
-Comprehensive Oversight – Maintain full operational control for seamless workshop management
+**For Students**
+1. Workshop Discovery – Find and register for workshops effortlessly
+2. Real-Time Progress Tracking – Monitor learning progress instantly
+3. Digital Certifications – Earn and store certifications within the platform
+4. Personalized Dashboard – Keep track of upcoming and completed workshops
+5. User Profiles – Customize your profile and showcase achievements
+
+
+**For Administrators**
+1. User Management – Add, remove, and oversee student and admin accounts
+2. Workshop Control – Create, edit, and manage workshop sessions
+3. Attendee Tracking – Monitor workshop attendance in real time
+4. Admin Privileges – Grant or revoke administrative access
+5. Comprehensive Oversight – Maintain full operational control for seamless workshop management
 
 ## 💻 Getting Started
 
