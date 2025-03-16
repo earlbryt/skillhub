@@ -5,15 +5,18 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarFooter
 } from '@/components/ui/sidebar';
 import { 
   Home, 
   Users, 
   BookOpen, 
-  Settings, 
   LogOut,
   ArrowLeft
 } from 'lucide-react';
+
+// Add CSS for hiding scrollbars
+import './sidebar.css';
 
 interface AdminSidebarProps {
   sidebarCollapsed: boolean;
@@ -28,27 +31,29 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
     { title: 'Dashboard', path: '/admin', icon: Home },
     { title: 'Workshops', path: '/admin/workshops', icon: BookOpen },
     { title: 'Users', path: '/admin/users', icon: Users },
-    { title: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
   const handleLogout = () => {
-    // In a real application, perform logout
+    // In a real application, perform logout logic here
+    // For example: clear auth tokens, user data, etc.
+    
+    // Then navigate to the login page or home page
     navigate('/');
   };
 
   return (
     <Sidebar 
-      className="fixed h-full z-10 bg-gray-900 transition-all duration-300 ease-in-out"
+      className="fixed h-full z-10 bg-gradient-to-b from-blue-600 to-blue-800 transition-all duration-300 ease-in-out flex flex-col hide-scrollbar"
       style={{ width: sidebarCollapsed ? '4rem' : '16rem' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <SidebarContent>
+      <SidebarContent className="flex-1 overflow-hidden hover:overflow-y-auto hide-scrollbar">
         <SidebarGroup>
-          <div className="flex items-center justify-between p-4">
+          <div className="flex items-center justify-between p-4 border-b border-blue-500/30">
             <div className="flex items-center">
-              <div className={`bg-blue-500 rounded-md flex items-center justify-center ${sidebarCollapsed ? 'w-8 h-8' : 'p-2'}`}>
-                <span className="text-white font-bold">WA</span>
+              <div className={`bg-white rounded-md flex items-center justify-center ${sidebarCollapsed ? 'w-8 h-8' : 'p-2'}`}>
+                <span className="text-blue-700 font-bold">WA</span>
               </div>
               <span className={`text-white font-bold ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                 Workshop Admin
@@ -56,7 +61,7 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
             </div>
           </div>
           
-          <SidebarGroupContent>
+          <SidebarGroupContent className="hide-scrollbar">
             <div className="flex flex-col gap-2 mt-6 px-3">
               {navItems.map((item) => (
                 <NavLink
@@ -65,7 +70,10 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
                   end={item.path === '/admin'}
                   className={({ isActive }) => `
                     flex items-center p-3 rounded-md cursor-pointer transition-all
-                    ${isActive ? 'bg-blue-500/20 text-blue-500' : 'text-gray-400 hover:bg-gray-800'}
+                    ${isActive 
+                      ? 'bg-white/20 text-white font-medium' 
+                      : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    }
                     ${sidebarCollapsed ? 'justify-center' : ''}
                   `}
                 >
@@ -75,32 +83,27 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
                   </span>
                 </NavLink>
               ))}
-              
-              {/* Logout button */}
-              <button 
-                onClick={handleLogout}
-                className={`flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 w-full text-left ${sidebarCollapsed ? 'justify-center' : ''}`}
-              >
-                <span className="flex-shrink-0"><LogOut size={20} /></span>
-                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
-                  Logout
-                </span>
-              </button>
-              
-              {/* Back to site button */}
-              <NavLink
-                to="/"
-                className={`flex items-center p-3 rounded-md cursor-pointer transition-all text-gray-400 hover:bg-gray-800 mt-4 ${sidebarCollapsed ? 'justify-center' : ''}`}
-              >
-                <span className="flex-shrink-0"><ArrowLeft size={20} /></span>
-                <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
-                  Back to Site
-                </span>
-              </NavLink>
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
+      {/* Footer with back to site button */}
+      <div className="px-3 pb-4 mt-auto border-t border-blue-500/30 pt-4">
+        <button 
+          onClick={handleLogout}
+          className={`
+            flex items-center p-3 rounded-md cursor-pointer transition-all w-full
+            text-white bg-white/10 hover:bg-white/20
+            ${sidebarCollapsed ? 'justify-center' : ''}
+          `}
+        >
+          <span className="flex-shrink-0"><ArrowLeft size={20} /></span>
+          <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
+            Back to Site
+          </span>
+        </button>
+      </div>
     </Sidebar>
   );
 };

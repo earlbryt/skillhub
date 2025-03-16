@@ -199,23 +199,23 @@ const AdminOverview = () => {
   return (
     <div>
       {/* Stats cards */}
-      <div className="flex flex-wrap gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statsCards.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm flex-1 min-w-64 h-32">
-            <div className="flex justify-between items-center h-full">
-              <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 ${stat.color} rounded-full flex items-center justify-center text-white`}>
+          <div key={index} className="bg-white p-6 rounded-lg shadow-sm h-auto">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 ${stat.color} rounded-full flex items-center justify-center text-white`}>
                   {stat.icon}
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
-                  <p className="text-3xl font-bold">{stat.amount}</p>
-                  <p className="text-xs mt-1 text-gray-500">{stat.change}</p>
-                </div>
+                <button>
+                  <MoreVertical size={18} className="text-gray-400" />
+                </button>
               </div>
-              <button className="self-start">
-                <MoreVertical size={20} className="text-gray-400" />
-              </button>
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 mb-1">{stat.title}</h3>
+                <p className="text-2xl font-bold mb-2">{stat.amount}</p>
+                <p className="text-xs text-gray-500">{stat.change}</p>
+              </div>
             </div>
           </div>
         ))}
