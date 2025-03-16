@@ -1,18 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  Search, 
   Plus,
   Eye,
   Users,
   Clock,
   MapPin,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  Tag,
+  DollarSign,
+  Bookmark
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -24,10 +24,10 @@ import { useToast } from '@/hooks/use-toast';
 type WorkshopWithRegistrations = Workshop & {
   registrations_count: number;
   registration_status?: string;
+  category?: string;
 };
 
 const AdminWorkshops = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [workshops, setWorkshops] = useState<WorkshopWithRegistrations[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<string>('start_date');
@@ -98,13 +98,6 @@ const AdminWorkshops = () => {
     fetchWorkshops();
   }, [sortField, sortDirection, toast]);
   
-  // Filter workshops based on search query
-  const filteredWorkshops = workshops.filter(workshop => 
-    workshop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    workshop.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    workshop.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
   // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'MMM d, yyyy');
@@ -121,11 +114,18 @@ const AdminWorkshops = () => {
     if (status === 'upcoming') return 'bg-blue-100 text-blue-800';
     return 'bg-gray-100 text-gray-800';
   };
+
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    if (status === 'active') return <div className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></div>;
+    if (status === 'upcoming') return <div className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></div>;
+    return <div className="w-2 h-2 rounded-full bg-gray-500 mr-1.5"></div>;
+  };
   
   return (
-    <div>
+    <div className="bg-gray-50">
       {/* Workshops Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Workshops</h2>
           <p className="text-sm text-gray-500">Total {workshops.length} workshops available</p>
@@ -136,133 +136,140 @@ const AdminWorkshops = () => {
         </Button>
       </div>
       
-      {/* Search and filter */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search workshops by title, description or location..."
-            className="w-full py-2 px-4 pr-10 border rounded-md"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
+      {/* Workshops cards */}
+      {loading ? (
+        <div className="flex justify-center items-center py-8 bg-white rounded-lg shadow-sm">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-500">Loading workshops...</span>
         </div>
-      </div>
-      
-      {/* Workshops table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Workshop</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Date & Time</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Location</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Registration</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="ml-2 text-gray-500">Loading...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredWorkshops.length > 0 ? (
-                filteredWorkshops.map((workshop) => (
-                  <tr key={workshop.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-gray-900">{workshop.title}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">{workshop.description}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-col">
-                        <div className="flex items-center text-gray-700">
-                          <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                          {formatDate(workshop.start_date)}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                          {formatTime(workshop.start_date)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center text-gray-700">
-                        <MapPin className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                        {workshop.location}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1.5 text-gray-400" />
-                        <span className={`font-medium ${
-                          workshop.registrations_count >= workshop.capacity 
-                            ? 'text-red-600' 
-                            : workshop.registrations_count >= workshop.capacity * 0.8
-                              ? 'text-orange-600'
-                              : 'text-blue-600'
-                        }`}>
-                          {workshop.registrations_count}
-                        </span>
-                        <span className="text-gray-400 mx-1">/</span>
-                        <span className="text-gray-600">{workshop.capacity}</span>
-                      </div>
-                      {workshop.registrations_count >= workshop.capacity && (
-                        <div className="text-xs text-red-600 mt-1">
-                          At capacity
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(workshop.registration_status || '')}`}>
+      ) : workshops.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3">
+          {workshops.map((workshop) => (
+            <Card key={workshop.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-1.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs flex items-center ${getStatusBadge(workshop.registration_status || '')}`}>
+                        {getStatusIcon(workshop.registration_status || '')}
                         {workshop.registration_status}
                       </span>
-                    </td>
-                    <td className="text-right py-3 px-4">
-                      <Button variant="outline" size="sm" asChild className="border-gray-200 text-gray-700 hover:text-blue-700 hover:border-blue-200">
-                        <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" />
-                          <span className="ml-1.5">Attendees</span>
-                        </Link>
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">
-                    No workshops found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      {workshop.price > 0 && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center">
+                          <DollarSign className="h-3 w-3 mr-1 text-emerald-500" />
+                          GH₵{workshop.price}
+                        </span>
+                      )}
+                      {workshop.category && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center">
+                          <Tag className="h-3 w-3 mr-1 text-gray-500" />
+                          {workshop.category}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900">{workshop.title}</h3>
+                    <p className="text-xs text-gray-600 line-clamp-1 mb-2">{workshop.description}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Date & Time</span>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Calendar className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                      {formatDate(workshop.start_date)}
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="h-3.5 w-3.5 mr-1 text-orange-500" />
+                      {formatTime(workshop.start_date)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Location</span>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <MapPin className="h-3.5 w-3.5 mr-1 text-red-500" />
+                      {workshop.location}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Registration</span>
+                    <div className="flex items-center text-sm">
+                      <Users className="h-3.5 w-3.5 mr-1 text-indigo-500" />
+                      <span className={`font-medium ${
+                        workshop.registrations_count >= workshop.capacity 
+                          ? 'text-red-600' 
+                          : workshop.registrations_count >= workshop.capacity * 0.8
+                            ? 'text-orange-600'
+                            : 'text-blue-600'
+                      }`}>
+                        {workshop.registrations_count}
+                      </span>
+                      <span className="text-gray-400 mx-1">/</span>
+                      <span className="text-gray-600">{workshop.capacity}</span>
+                      
+                      {workshop.registrations_count >= workshop.capacity && (
+                        <span className="ml-2 text-xs text-red-600 bg-red-50 px-1 py-0.5 rounded">
+                          At capacity
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Progress bar for capacity */}
+                    <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                      <div 
+                        className={`h-1 rounded-full ${
+                          workshop.registrations_count >= workshop.capacity 
+                            ? 'bg-red-500' 
+                            : workshop.registrations_count >= workshop.capacity * 0.8
+                              ? 'bg-orange-500'
+                              : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(100, (workshop.registrations_count / workshop.capacity) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-4 py-2 bg-gray-100 flex justify-between items-center">
+                <div className="flex items-center">
+                  <Bookmark className="h-3.5 w-3.5 text-gray-400 mr-1" />
+                  <span className="text-xs text-gray-500">ID: {workshop.id.substring(0, 8)}...</span>
+                </div>
+                <Button variant="outline" size="sm" asChild className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200">
+                  <Link to={`/admin/workshops/${workshop.id}/attendees`} className="flex items-center gap-1">
+                    <Eye className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="ml-1">View Attendees</span>
+                  </Link>
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
-        
-        {/* Pagination */}
-        {filteredWorkshops.length > 0 && (
-          <div className="flex justify-between items-center p-4 text-sm">
-            <p>Page 1 of 1</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
-                <ChevronLeft size={14} />
-                <span>Previous</span>
-              </button>
-              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
-                <span>Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
+          No workshops found
+        </div>
+      )}
+      
+      {/* Pagination */}
+      {workshops.length > 0 && (
+        <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
+          <p>Page 1 of 1</p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
+              <ChevronLeft size={14} />
+              <span>Previous</span>
+            </button>
+            <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
+              <span>Next</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

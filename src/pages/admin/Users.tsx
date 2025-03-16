@@ -1,9 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Mail, ExternalLink, BookOpen, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Mail, 
+  ExternalLink, 
+  BookOpen, 
+  MoreVertical, 
+  ChevronLeft, 
+  ChevronRight,
+  Calendar,
+  User,
+  Clock,
+  Shield
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +34,6 @@ type UserWithWorkshops = {
 };
 
 const AdminUsers = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<UserWithWorkshops[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -101,138 +110,141 @@ const AdminUsers = () => {
     fetchUsersWithWorkshops();
   }, [toast]);
   
-  // Filter users based on search query
-  const filteredUsers = users.filter(user => 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
   // Format date
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd-MM-yyyy');
+    return format(new Date(dateString), 'MMM d, yyyy');
+  };
+
+  // Format time
+  const formatTime = (dateString: string) => {
+    return format(new Date(dateString), 'h:mm a');
   };
 
   return (
-    <div>
+    <div className="bg-gray-50">
       {/* Users Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Users</h2>
           <p className="text-sm text-gray-500">Total {users.length} users registered</p>
         </div>
       </div>
       
-      {/* Search and filter */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search users by name or email..."
-            className="w-full py-2 px-4 pr-10 border rounded-md"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
+      {/* Users cards */}
+      {loading ? (
+        <div className="flex justify-center items-center py-8 bg-white rounded-lg shadow-sm">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-500">Loading users...</span>
         </div>
-      </div>
-      
-      {/* Users table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">User Name</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Email</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Joined</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Workshops</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="ml-2 text-gray-500">Loading...</span>
+      ) : users.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3">
+          {users.map((user) => (
+            <Card key={user.email} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
+              <div className="p-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  {/* User info */}
+                  <div className="flex items-start gap-3 mb-3 md:mb-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-base font-medium flex-shrink-0">
+                      {user.first_name.charAt(0)}
                     </div>
-                  </td>
-                </tr>
-              ) : filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <tr key={user.email} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                          {user.first_name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{user.first_name} {user.last_name}</p>
-                        </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">{user.first_name} {user.last_name}</h3>
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <Mail className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                        <span>{user.email}</span>
                       </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{user.email}</td>
-                    <td className="py-3 px-4 text-sm text-gray-700">
-                      {formatDate(user.created_at)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-col gap-1.5">
-                        {user.workshops.length > 0 ? (
-                          <div className="flex items-center">
-                            <BookOpen className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
-                            <span className="text-sm">{user.workshops.length} workshops</span>
+                      <div className="flex items-center text-gray-500 text-xs">
+                        <Clock className="h-3.5 w-3.5 mr-1 text-green-500" />
+                        <span>Joined on {formatDate(user.created_at)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2 mb-3 md:mb-0">
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                      <Mail className="h-3.5 w-3.5 text-blue-500 mr-1" />
+                      <span>Email</span>
+                    </Button>
+                    {user.id && (
+                      <Button variant="outline" size="sm" className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                        <User className="h-3.5 w-3.5 text-gray-500 mr-1" />
+                        <span>Profile</span>
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Workshop info */}
+                {user.workshops.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center mb-2">
+                      <BookOpen className="h-3.5 w-3.5 mr-1 text-gray-500" />
+                      <span className="font-medium text-sm text-gray-700">
+                        {user.workshops.length} Workshop{user.workshops.length > 1 ? 's' : ''} Registered
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {user.workshops.slice(0, 2).map(workshop => (
+                        <div key={workshop.id} className="bg-gray-100 p-2 rounded-md">
+                          <div className="font-medium text-sm text-gray-800">{workshop.title}</div>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1 text-blue-500" />
+                            {formatDate(workshop.start_date)}
                           </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">No workshops</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 text-gray-700 hover:text-blue-700">
-                          <Mail className="h-3.5 w-3.5" />
-                        </Button>
-                        {user.id && (
-                          <Button variant="outline" size="sm" className="h-8 border-gray-200 text-gray-700 hover:text-blue-700">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 text-gray-700 hover:text-blue-700">
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500">
-                    No users found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                        </div>
+                      ))}
+                      
+                      {user.workshops.length > 2 && (
+                        <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center text-xs text-blue-500">
+                          <span>+{user.workshops.length - 2} more workshops</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="px-4 py-2 bg-gray-100 flex justify-between items-center">
+                <div className="flex items-center">
+                  <Shield className="h-3.5 w-3.5 text-gray-400 mr-1" />
+                  <span className="text-xs text-gray-500">
+                    {user.id ? 'Registered User' : 'Guest Registration'}
+                  </span>
+                </div>
+                <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                  <ExternalLink className="h-3.5 w-3.5 text-blue-500" />
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
-        
-        {/* Pagination */}
-        {filteredUsers.length > 0 && (
-          <div className="flex justify-between items-center p-4 text-sm">
-            <p>Page 1 of 1</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
-                <ChevronLeft size={14} />
-                <span>Previous</span>
-              </button>
-              <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
-                <span>Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
+          No users found
+        </div>
+      )}
+      
+      {/* Pagination */}
+      {users.length > 0 && (
+        <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
+          <p>Page 1 of 1</p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border rounded-md bg-gray-50 flex items-center gap-1" disabled>
+              <ChevronLeft size={14} />
+              <span>Previous</span>
+            </button>
+            <button className="px-3 py-1 border rounded-md bg-blue-500 text-white flex items-center gap-1" disabled>
+              <span>Next</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
