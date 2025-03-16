@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { LucideIcon } from 'lucide-react';
@@ -22,7 +21,7 @@ const FeatureCard = ({
 }: FeatureCardProps) => {
   return (
     <div className={cn(
-      "bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30 hover:shadow-xl transition-all duration-300",
+      "bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300",
       className
     )}>
       <div className="flex items-center space-x-3 mb-2">
@@ -31,7 +30,7 @@ const FeatureCard = ({
         </div>
         <div className="font-semibold text-gray-900">{title}</div>
       </div>
-      <div className="text-sm text-foreground/70">{description}</div>
+      <div className="text-sm text-gray-500">{description}</div>
     </div>
   );
 };

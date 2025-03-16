@@ -227,7 +227,7 @@ const Index = () => {
               {features.map((feature, index) => (
                 <div 
                   key={index} 
-                  className="premium-card p-6 card-hover"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300"
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <feature.icon size={24} className="text-primary" />
@@ -243,7 +243,7 @@ const Index = () => {
         {/* Upcoming Workshop with Countdown */}
         <section className="py-16 bg-gradient-to-r from-primary/5 to-accent/5">
           <div className="container mx-auto px-4">
-            <div className="premium-card overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="p-8 lg:p-12">
                   <div className="text-sm font-medium text-accent mb-2">Next Workshop</div>

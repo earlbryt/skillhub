@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 
@@ -15,10 +14,7 @@ const TestimonialCard = ({ testimonial }: { testimonial: TestimonialProps }) => 
   const { name, role, image, rating, text, workshopName } = testimonial;
   
   return (
-    <div className="designer-card bg-white/80 backdrop-blur-sm p-6 shadow-xl border border-white/30 h-full flex flex-col hover:shadow-2xl transition-all duration-300">
-      {/* Decorative element */}
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-accent/10 rounded-bl-3xl -z-10"></div>
-      
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 h-full flex flex-col hover:shadow-md transition-all duration-300 relative">
       {/* Rating stars */}
       <div className="flex mb-4 relative z-10">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -41,8 +37,8 @@ const TestimonialCard = ({ testimonial }: { testimonial: TestimonialProps }) => 
       </blockquote>
       
       {/* User info */}
-      <div className="flex items-center mt-auto pt-4 border-t border-border/30">
-        <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/80 shadow-md">
+      <div className="flex items-center mt-auto pt-4 border-t border-gray-200">
+        <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white shadow-md">
           <img
             src={image}
             alt={name}

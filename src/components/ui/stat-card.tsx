@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 
@@ -10,22 +9,22 @@ interface StatCardProps {
   className?: string;
 }
 
-const StatCard = ({ value, label, icon, gradient = "from-primary via-accent to-secondary", className }: StatCardProps) => {
+const StatCard = ({ value, label, icon, gradient, className }: StatCardProps) => {
   return (
     <div className={cn(
-      "backdrop-blur-sm bg-white/80 rounded-2xl p-4 shadow-lg border border-white/30 flex-1 min-w-[120px] hover:shadow-xl transition-all duration-300 transform hover:scale-105",
+      "bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex-1 min-w-[120px] hover:shadow-md transition-all duration-300",
       className
     )}>
       {icon && (
         <div className="mb-2">{icon}</div>
       )}
       <div className={cn(
-        "text-2xl font-bold", 
-        gradient ? `bg-gradient-to-r ${gradient} text-transparent bg-clip-text` : "text-gradient-primary"
+        "text-2xl font-bold text-gray-900", 
+        gradient ? `bg-gradient-to-r ${gradient} text-transparent bg-clip-text` : ""
       )}>
         {value}
       </div>
-      <div className="text-sm text-foreground/70">{label}</div>
+      <div className="text-sm text-gray-500">{label}</div>
     </div>
   );
 };
