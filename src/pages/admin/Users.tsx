@@ -11,8 +11,7 @@ import {
   ChevronRight,
   Calendar,
   User,
-  Clock,
-  Shield
+  Clock
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -140,85 +139,76 @@ const AdminUsers = () => {
         <div className="grid grid-cols-1 gap-3">
           {users.map((user) => (
             <Card key={user.email} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
-              <div className="p-4">
+              <div className="p-3">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   {/* User info */}
-                  <div className="flex items-start gap-3 mb-3 md:mb-0">
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-base font-medium flex-shrink-0">
+                  <div className="flex items-start gap-2 mb-2 md:mb-0">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                       {user.first_name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-gray-900">{user.first_name} {user.last_name}</h3>
-                      <div className="flex items-center text-gray-500 text-sm">
-                        <Mail className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                      <h3 className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</h3>
+                      <div className="flex items-center text-gray-500 text-xs">
+                        <Mail className="h-3 w-3 mr-1 text-blue-500" />
                         <span>{user.email}</span>
                       </div>
                       <div className="flex items-center text-gray-500 text-xs">
-                        <Clock className="h-3.5 w-3.5 mr-1 text-green-500" />
-                        <span>Joined on {formatDate(user.created_at)}</span>
+                        <Clock className="h-3 w-3 mr-1 text-green-500" />
+                        <span>Joined {formatDate(user.created_at)}</span>
                       </div>
                     </div>
                   </div>
                   
                   {/* Actions */}
-                  <div className="flex gap-2 mb-3 md:mb-0">
-                    <Button variant="outline" size="sm" className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
-                      <Mail className="h-3.5 w-3.5 text-blue-500 mr-1" />
+                  <div className="flex gap-1 mb-2 md:mb-0">
+                    <Button variant="outline" size="sm" className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                      <Mail className="h-3 w-3 text-blue-500 mr-1" />
                       <span>Email</span>
                     </Button>
                     {user.id && (
-                      <Button variant="outline" size="sm" className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
-                        <User className="h-3.5 w-3.5 text-gray-500 mr-1" />
+                      <Button variant="outline" size="sm" className="h-7 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                        <User className="h-3 w-3 text-gray-500 mr-1" />
                         <span>Profile</span>
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-200 bg-white text-gray-700 hover:text-blue-700">
-                      <MoreVertical className="h-3.5 w-3.5" />
+                    <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-gray-200 bg-white text-gray-700 hover:text-blue-700">
+                      <MoreVertical className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
                 
                 {/* Workshop info */}
                 {user.workshops.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center mb-2">
-                      <BookOpen className="h-3.5 w-3.5 mr-1 text-gray-500" />
-                      <span className="font-medium text-sm text-gray-700">
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center mb-1">
+                      <BookOpen className="h-3 w-3 mr-1 text-gray-500" />
+                      <span className="font-medium text-xs text-gray-700">
                         {user.workshops.length} Workshop{user.workshops.length > 1 ? 's' : ''} Registered
                       </span>
+                      <Button variant="outline" size="sm" asChild className="h-6 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 ml-auto">
+                        <ExternalLink className="h-3 w-3 text-blue-500" />
+                      </Button>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {user.workshops.slice(0, 2).map(workshop => (
-                        <div key={workshop.id} className="bg-gray-100 p-2 rounded-md">
-                          <div className="font-medium text-sm text-gray-800">{workshop.title}</div>
+                        <div key={workshop.id} className="bg-gray-100 p-1.5 rounded-md">
+                          <div className="font-medium text-xs text-gray-800">{workshop.title}</div>
                           <div className="flex items-center text-xs text-gray-500">
-                            <Calendar className="h-3 w-3 mr-1 text-blue-500" />
+                            <Calendar className="h-2.5 w-2.5 mr-1 text-blue-500" />
                             {formatDate(workshop.start_date)}
                           </div>
                         </div>
                       ))}
                       
                       {user.workshops.length > 2 && (
-                        <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center text-xs text-blue-500">
-                          <span>+{user.workshops.length - 2} more workshops</span>
+                        <div className="bg-gray-100 p-1.5 rounded-md flex items-center justify-center text-xs text-blue-500">
+                          <span>+{user.workshops.length - 2} more</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-              </div>
-              
-              <div className="px-4 py-2 bg-gray-100 flex justify-between items-center">
-                <div className="flex items-center">
-                  <Shield className="h-3.5 w-3.5 text-gray-400 mr-1" />
-                  <span className="text-xs text-gray-500">
-                    {user.id ? 'Registered User' : 'Guest Registration'}
-                  </span>
-                </div>
-                <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-gray-200 bg-white text-gray-700 hover:text-blue-700">
-                  <ExternalLink className="h-3.5 w-3.5 text-blue-500" />
-                </Button>
               </div>
             </Card>
           ))}
