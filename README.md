@@ -51,12 +51,11 @@ The application will be available at `http://localhost:3000`.
 
 ### Student Journey
 
-1. **Create an Account**: Sign up using your email or social media accounts
-2. **Browse Workshops**: Explore available workshops on the homepage or workshops page
-3. **Register for Workshops**: Click on a workshop card to view details and register
-4. **Attend Workshops**: Access workshop details from your dashboard
-5. **Earn Certificates**: Complete workshops to earn certificates
-6. **Refer Friends**: Share your referral code to earn rewards
+1. **Browse Workshops**: Explore available workshops on the homepage or workshops page
+2. **Register for Workshops**: Click on a workshop card to view details and register
+3. **Attend Workshops**: Access workshop details from your dashboard
+4. **Earn Certificates**: Complete workshops to earn certificates
+5. **Refer Friends**: Share your referral code to earn rewards
 
 ### Workshop Navigation
 
