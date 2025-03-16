@@ -79,7 +79,7 @@ This software is made available to authorized users only and is not open source.
 
 ## 📞 Support
 
-If you encounter any issues or have questions about using SkillHub, please contact our support team at support@skillhub.com.
+If you encounter any issues or have questions about using SkillHub, please contact our support team at brightalour@gmail.com.
 
 ---
 
