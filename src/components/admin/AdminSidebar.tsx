@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -16,8 +15,13 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
-const AdminSidebar = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+interface AdminSidebarProps {
+  sidebarCollapsed: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSidebarProps) => {
   const navigate = useNavigate();
   
   const navItems = [
@@ -36,8 +40,8 @@ const AdminSidebar = () => {
     <Sidebar 
       className="fixed h-full z-10 bg-gray-900 transition-all duration-300 ease-in-out"
       style={{ width: sidebarCollapsed ? '4rem' : '16rem' }}
-      onMouseEnter={() => setSidebarCollapsed(false)}
-      onMouseLeave={() => setSidebarCollapsed(true)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <SidebarContent>
         <SidebarGroup>

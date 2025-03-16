@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -7,6 +6,7 @@ import { Search, Bell } from 'lucide-react';
 
 const AdminDashboard = () => {
   const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   
   // Get the current page title based on the route
   const getPageTitle = () => {
@@ -21,10 +21,17 @@ const AdminDashboard = () => {
   return (
     <div className="flex h-screen bg-blue-50">
       <SidebarProvider>
-        <AdminSidebar />
+        <AdminSidebar 
+          sidebarCollapsed={sidebarCollapsed}
+          onMouseEnter={() => setSidebarCollapsed(false)}
+          onMouseLeave={() => setSidebarCollapsed(true)}
+        />
         
-        {/* Main content with offset for fixed sidebar */}
-        <div className="flex-1 flex flex-col ml-16 overflow-hidden">
+        {/* Main content with dynamic offset for sidebar */}
+        <div 
+          className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ marginLeft: sidebarCollapsed ? '4rem' : '16rem' }}
+        >
           {/* Header */}
           <header className="bg-white p-4 flex justify-between items-center shadow-sm">
             <h1 className="text-xl font-bold">{getPageTitle()}</h1>

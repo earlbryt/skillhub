@@ -302,17 +302,17 @@ const WorkshopDetails = () => {
             <div className="mb-4 flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate('/workshops')} 
                 className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white flex items-center gap-2">
-                <ArrowLeft size={16} />
-                <span>Back to Workshops</span>
-              </Button>
+            <ArrowLeft size={16} />
+            <span>Back to Workshops</span>
+          </Button>
               {getWorkshopStatusBadge()}
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">{workshop.title}</h1>
             <p className="mt-2 md:mt-4 max-w-2xl text-white/90">{workshop.description.substring(0, 120)}...</p>
           </div>
         </div>
-      </div>
-
+        </div>
+        
       <div className="container mx-auto py-12 px-4">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
@@ -346,7 +346,7 @@ const WorkshopDetails = () => {
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Calendar className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
+                  <div>
                       <div className="font-medium text-slate-900">Date</div>
                       <div className="text-slate-600">{formatDate(workshop.start_date)}</div>
                     </div>
@@ -360,15 +360,15 @@ const WorkshopDetails = () => {
                       <div className="font-medium text-slate-900">Time</div>
                       <div className="text-slate-600">
                         {formatTime(workshop.start_date)} - {formatTime(workshop.end_date)}
-                      </div>
                     </div>
                   </div>
-                  
+                </div>
+                
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <MapPin className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
+                  <div>
                       <div className="font-medium text-slate-900">Location</div>
                       <div className="text-slate-600">{workshop.location}</div>
                     </div>
@@ -377,16 +377,16 @@ const WorkshopDetails = () => {
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
+                </div>
+                  <div>
                       <div className="font-medium text-slate-900">Capacity</div>
                       <div className="text-slate-600">
-                        {registrationsCount} / {workshop.capacity} registered
+                      {registrationsCount} / {workshop.capacity} registered
                       </div>
-                    </div>
                   </div>
-                  
-                  {workshop.instructor && (
+                </div>
+                
+                {workshop.instructor && (
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <User className="h-5 w-5 text-primary" />
@@ -412,7 +412,7 @@ const WorkshopDetails = () => {
                 <Separator />
                 
                 {/* Benefits Section */}
-                <div>
+                  <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">What You'll Get</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
@@ -439,22 +439,22 @@ const WorkshopDetails = () => {
                       </div>
                       <span className="text-slate-700">Certificate of completion</span>
                     </div>
-                  </div>
                 </div>
-                
+              </div>
+              
                 {/* Capacity Progress Bar */}
                 <div className="bg-slate-50 p-4 rounded-lg">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="font-medium text-slate-800">Registration Status</span>
                     <span className={`${isWorkshopFull ? 'text-red-600 font-medium' : 'text-slate-600'}`}>
-                      {registrationsCount}/{workshop.capacity} spots filled
-                    </span>
-                  </div>
+                    {registrationsCount}/{workshop.capacity} spots filled
+                  </span>
+                </div>
                   <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                    <div 
+                  <div 
                       className={`h-full ${getCapacityColor()} transition-all duration-500 ease-in-out`}
-                      style={{ width: `${Math.min((registrationsCount / workshop.capacity) * 100, 100)}%` }}
-                    ></div>
+                    style={{ width: `${Math.min((registrationsCount / workshop.capacity) * 100, 100)}%` }}
+                  ></div>
                   </div>
                   {!isWorkshopFull && !isWorkshopInPast && (
                     <p className="mt-2 text-sm text-slate-500">
