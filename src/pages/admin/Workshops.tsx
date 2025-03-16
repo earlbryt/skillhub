@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { useSearch } from './Dashboard';
 
 type WorkshopWithRegistrations = Workshop & {
   registrations_count: number;
@@ -33,6 +34,7 @@ const AdminWorkshops = () => {
   const [sortField, setSortField] = useState<string>('start_date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { toast } = useToast();
+  const { searchQuery } = useSearch();
   
   useEffect(() => {
     const fetchWorkshops = async () => {
@@ -97,6 +99,21 @@ const AdminWorkshops = () => {
     
     fetchWorkshops();
   }, [sortField, sortDirection, toast]);
+
+  // Filter workshops based on search query
+  const filteredWorkshops = workshops.filter(workshop => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      workshop.title.toLowerCase().includes(query) ||
+      workshop.description.toLowerCase().includes(query) ||
+      workshop.location.toLowerCase().includes(query) ||
+      workshop.instructor.toLowerCase().includes(query) ||
+      (workshop.category && workshop.category.toLowerCase().includes(query)) ||
+      workshop.registration_status?.toLowerCase().includes(query)
+    );
+  });
   
   // Format date
   const formatDate = (dateString: string) => {
@@ -128,7 +145,12 @@ const AdminWorkshops = () => {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Workshops</h2>
-          <p className="text-sm text-gray-500">Total {workshops.length} workshops available</p>
+          <p className="text-sm text-gray-500">
+            {searchQuery 
+              ? `${filteredWorkshops.length} workshops found for "${searchQuery}"`
+              : `Total ${workshops.length} workshops available`
+            }
+          </p>
         </div>
         <Button className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2">
           <Plus size={16} /> 
@@ -142,9 +164,9 @@ const AdminWorkshops = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-500">Loading workshops...</span>
         </div>
-      ) : workshops.length > 0 ? (
+      ) : filteredWorkshops.length > 0 ? (
         <div className="grid grid-cols-1 gap-3">
-          {workshops.map((workshop) => (
+          {filteredWorkshops.map((workshop) => (
             <Card key={workshop.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
               <div className="p-3 border-b border-gray-100">
                 <div className="flex justify-between items-start">
@@ -248,12 +270,15 @@ const AdminWorkshops = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
-          No workshops found
+          {searchQuery 
+            ? `No workshops found matching "${searchQuery}"`
+            : "No workshops found"
+          }
         </div>
       )}
       
       {/* Pagination */}
-      {workshops.length > 0 && (
+      {filteredWorkshops.length > 0 && (
         <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
           <p>Page 1 of 1</p>
           <div className="flex gap-2">

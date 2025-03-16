@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { useSearch } from './Dashboard';
 
 type DashboardStats = {
   totalUsers: number;
@@ -34,6 +35,7 @@ const AdminOverview = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { searchQuery } = useSearch();
   
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -187,6 +189,20 @@ const AdminOverview = () => {
     },
   ];
 
+  // Filter recent registrations based on search query
+  const filteredRegistrations = stats.recentRegistrations.filter(registration => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      registration.first_name.toLowerCase().includes(query) ||
+      registration.last_name.toLowerCase().includes(query) ||
+      registration.email.toLowerCase().includes(query) ||
+      registration.workshop_title.toLowerCase().includes(query) ||
+      registration.status?.toLowerCase().includes(query)
+    );
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -226,7 +242,12 @@ const AdminOverview = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold">Recent Registrations</h2>
-            <p className="text-sm text-gray-500">Showing {stats.recentRegistrations.length} recent workshop registrations</p>
+            <p className="text-sm text-gray-500">
+              {searchQuery 
+                ? `${filteredRegistrations.length} registrations found for "${searchQuery}"`
+                : `Showing ${stats.recentRegistrations.length} recent workshop registrations`
+              }
+            </p>
           </div>
           <div className="flex gap-3">
             <Button className="px-4 py-2 bg-blue-500 text-white rounded-md">
@@ -248,8 +269,8 @@ const AdminOverview = () => {
               </tr>
             </thead>
             <tbody>
-              {stats.recentRegistrations.length > 0 ? (
-                stats.recentRegistrations.map((registration) => (
+              {filteredRegistrations.length > 0 ? (
+                filteredRegistrations.map((registration) => (
                   <tr key={registration.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
@@ -274,7 +295,10 @@ const AdminOverview = () => {
               ) : (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-500">
-                    No recent registrations found
+                    {searchQuery 
+                      ? `No registrations found matching "${searchQuery}"`
+                      : "No recent registrations found"
+                    }
                   </td>
                 </tr>
               )}

@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Workshop } from '@/types/supabase';
+import { useSearch } from './Dashboard';
 
 type UserWithWorkshops = {
   id: string;
@@ -36,6 +37,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<UserWithWorkshops[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { searchQuery } = useSearch();
   
   useEffect(() => {
     const fetchUsersWithWorkshops = async () => {
@@ -109,6 +111,21 @@ const AdminUsers = () => {
     fetchUsersWithWorkshops();
   }, [toast]);
   
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      user.first_name.toLowerCase().includes(query) ||
+      user.last_name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.workshops.some(workshop => 
+        workshop.title.toLowerCase().includes(query)
+      )
+    );
+  });
+  
   // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'MMM d, yyyy');
@@ -125,7 +142,12 @@ const AdminUsers = () => {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Users</h2>
-          <p className="text-sm text-gray-500">Total {users.length} users registered</p>
+          <p className="text-sm text-gray-500">
+            {searchQuery 
+              ? `${filteredUsers.length} users found for "${searchQuery}"`
+              : `Total ${users.length} users registered`
+            }
+          </p>
         </div>
       </div>
       
@@ -135,9 +157,9 @@ const AdminUsers = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-500">Loading users...</span>
         </div>
-      ) : users.length > 0 ? (
+      ) : filteredUsers.length > 0 ? (
         <div className="grid grid-cols-1 gap-3">
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <Card key={user.email} className="overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white">
               <div className="p-3">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -215,12 +237,15 @@ const AdminUsers = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm p-6 text-center text-gray-500">
-          No users found
+          {searchQuery 
+            ? `No users found matching "${searchQuery}"`
+            : "No users found"
+          }
         </div>
       )}
       
       {/* Pagination */}
-      {users.length > 0 && (
+      {filteredUsers.length > 0 && (
         <div className="flex justify-between items-center mt-4 bg-white p-3 rounded-lg shadow-sm text-sm">
           <p>Page 1 of 1</p>
           <div className="flex gap-2">
