@@ -73,22 +73,37 @@ export const deleteWorkshop = async (id: string): Promise<void> => {
   }
 };
 
-export const registerForWorkshop = async (workshopId: string, userId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('workshop_attendees')
-    .insert([
-      {
-        workshop_id: workshopId,
-        user_id: userId,
-        registration_date: new Date().toISOString(),
-        status: 'registered',
-        payment_status: 'pending'
-      }
-    ]);
+export interface RegistrationData {
+  workshop_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  user_id: string | null;
+}
+
+export const registerForWorkshop = async (registrationData: RegistrationData): Promise<{ success: boolean, error?: any }> => {
+  try {
+    const now = new Date().toISOString();
     
-  if (error) {
-    console.error(`Error registering for workshop with ID ${workshopId}:`, error);
-    throw error;
+    const { error } = await supabase
+      .from('registrations')
+      .insert([{
+        ...registrationData,
+        created_at: now,
+        updated_at: now,
+        status: 'confirmed'
+      }]);
+      
+    if (error) {
+      console.error('Error registering for workshop:', error);
+      return { success: false, error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error registering for workshop:', error);
+    return { success: false, error };
   }
 };
 
