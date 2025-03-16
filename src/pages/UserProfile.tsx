@@ -1,34 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Mail, Phone, Calendar, ChevronRight, Bell, Settings, Camera, Pencil } from 'lucide-react';
+import { User, Mail, Phone, Calendar, ChevronRight, Bell, Settings } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMyRegistrations } from '@/services/workshopService';
 import { format } from 'date-fns';
 import { Registration, Workshop } from '@/types/supabase';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('workshops');
   const [registeredWorkshops, setRegisteredWorkshops] = useState<(Registration & { workshop: Workshop })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -52,11 +38,6 @@ const UserProfile = () => {
         setLoading(false);
       }
     };
-
-    // Initialize profile photo from user metadata if available
-    if (user?.user_metadata?.avatar_url) {
-      setProfilePhotoUrl(user.user_metadata.avatar_url);
-    }
 
     fetchRegistrations();
   }, [user, toast]);
@@ -89,73 +70,6 @@ const UserProfile = () => {
     return 'No phone number';
   };
 
-  // Handle settings click
-  const handleSettingsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Coming Soon",
-      description: "Account settings will be available in a future update.",
-      variant: "default",
-    });
-  };
-
-  // Handle notifications click
-  const handleNotificationsClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Coming Soon",
-      description: "Notification preferences will be available in a future update.",
-      variant: "default",
-    });
-  };
-
-  // Handle profile photo edit
-  const handleProfilePhotoClick = () => {
-    setIsEditProfileOpen(true);
-  };
-
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setProfilePhotoUrl(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Handle file upload button click
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  // Handle save profile photo
-  const handleSaveProfilePhoto = () => {
-    setIsUploading(true);
-    
-    // Simulate upload delay
-    setTimeout(() => {
-      setIsUploading(false);
-      setIsEditProfileOpen(false);
-      
-      toast({
-        title: "Profile Photo Updated",
-        description: "Your profile photo has been successfully updated.",
-        variant: "default",
-      });
-    }, 1500);
-  };
-
-  // Get initials for avatar fallback
-  const getInitials = () => {
-    const name = getUserDisplayName();
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -168,30 +82,11 @@ const UserProfile = () => {
           <div className="md:col-span-1">
             <div className="bg-card rounded-lg shadow-md p-6">
               <div className="flex flex-col items-center text-center mb-6">
-                <div className="relative mb-4">
-                  <Avatar className="w-24 h-24 border-4 border-primary/20">
-                    {profilePhotoUrl ? (
-                      <AvatarImage src={profilePhotoUrl} alt={getUserDisplayName()} />
-                    ) : (
-                      <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                        {getInitials()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <Button 
-                    variant="secondary" 
-                    size="icon" 
-                    className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-md"
-                    onClick={handleProfilePhotoClick}
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <User className="w-12 h-12 text-primary" />
                 </div>
                 <h2 className="text-xl font-bold">{getUserDisplayName()}</h2>
                 <p className="text-muted-foreground">{user?.email}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Member since {format(new Date(user?.created_at || Date.now()), 'MMMM yyyy')}
-                </p>
               </div>
               
               <div className="space-y-4 mb-6">
@@ -206,21 +101,17 @@ const UserProfile = () => {
               </div>
               
               <div className="mt-8 pt-6 border-t border-border">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start mb-2" 
-                  onClick={handleSettingsClick}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Account Settings
+                <Button variant="outline" className="w-full justify-start mb-2" asChild>
+                  <Link to="/profile/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </Link>
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={handleNotificationsClick}
-                >
-                  <Bell className="mr-2 h-4 w-4" />
-                  Notification Preferences
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <Link to="/profile/notifications">
+                    <Bell className="mr-2 h-4 w-4" />
+                    Notification Preferences
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -382,73 +273,6 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
-
-      {/* Profile Photo Edit Dialog */}
-      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Profile Photo</DialogTitle>
-            <DialogDescription>
-              Upload a new profile photo or choose from our gallery.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="flex flex-col items-center justify-center py-5">
-            <Avatar className="w-32 h-32 mb-4 border-4 border-primary/20">
-              {profilePhotoUrl ? (
-                <AvatarImage src={profilePhotoUrl} alt={getUserDisplayName()} />
-              ) : (
-                <AvatarFallback className="bg-primary/10 text-primary text-2xl">
-                  {getInitials()}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            
-            <Button 
-              variant="outline" 
-              onClick={handleUploadClick}
-              className="mb-2"
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Choose Photo
-            </Button>
-            
-            <p className="text-xs text-muted-foreground mt-2">
-              Recommended: Square image, at least 300x300 pixels
-            </p>
-          </div>
-          
-          <DialogFooter className="flex justify-between sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditProfileOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveProfilePhoto}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <span className="animate-spin mr-2">⟳</span>
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
