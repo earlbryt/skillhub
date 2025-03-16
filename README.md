@@ -2,7 +2,7 @@
 
 SkillHub is a comprehensive platform designed to help students discover, register for, and manage educational workshops. The platform connects students with expert-led workshops across various disciplines, providing a seamless experience for skill development and learning.
 
-![SkillHub Platform](https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80)
+![SkillHub Platform](![Image](https://github.com/user-attachments/assets/f6fd12a1-fc37-4878-8c03-e8c7bdce228b))
 
 ## 🚀 Features
 
