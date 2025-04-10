@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { generateChatResponse } from './groqService';
 import { Workshop, Registration } from '@/types/supabase';
@@ -61,17 +60,6 @@ export const getUserDataForAI = async (userId: string | null): Promise<string> =
   }
 
   try {
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError);
-    }
-
     // Get user registrations with workshop details
     const { data: registrations, error: registrationsError } = await supabase
       .from('registrations')
@@ -83,33 +71,22 @@ export const getUserDataForAI = async (userId: string | null): Promise<string> =
 
     if (registrationsError) {
       console.error('Error fetching user registrations:', registrationsError);
+      return "I'm having trouble retrieving your workshop registrations at the moment.";
     }
 
     let userData = "";
     
-    // Format user profile data
-    if (profile) {
+    // Try to get basic info from registrations
+    if (registrations && registrations.length > 0) {
+      const firstRegistration = registrations[0];
       userData += `
-User Information:
-Name: ${profile.full_name || 'No name provided'}
-Email: ${profile.email || 'No email provided'}
-Phone: ${profile.phone || 'No phone provided'}
-`;
-    } else {
-      // If no profile, try to get basic info from registrations
-      if (registrations && registrations.length > 0) {
-        const firstRegistration = registrations[0];
-        userData += `
 User Information:
 Name: ${firstRegistration.first_name} ${firstRegistration.last_name}
 Email: ${firstRegistration.email}
 Phone: ${firstRegistration.phone || 'No phone provided'}
 `;
-      }
-    }
-
-    // Format user's registered workshops
-    if (registrations && registrations.length > 0) {
+    
+      // Format user's registered workshops
       userData += "\nRegistered Workshops:\n";
       registrations.forEach((reg, index) => {
         if (reg.workshop) {
@@ -124,6 +101,15 @@ ${index + 1}. ${workshop.title}
         }
       });
     } else {
+      // If no registrations, try to get user info directly
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth && auth.user) {
+        userData += `
+User Information:
+Email: ${auth.user.email || 'No email provided'}
+`;
+      }
+      
       userData += "\nNo registered workshops found.";
     }
 
@@ -150,24 +136,26 @@ export const isUserRegisteredForWorkshop = async (
       .limit(1);
 
     if (workshopError || !workshops || workshops.length === 0) {
+      console.log(`Workshop not found with title: ${workshopTitle}`);
       return false;
     }
 
     const workshopId = workshops[0].id;
 
     // Then check if the user is registered
-    const { count, error: registrationError } = await supabase
+    const { data, error: registrationError } = await supabase
       .from('registrations')
-      .select('*', { count: 'exact', head: true })
+      .select('*')
       .eq('workshop_id', workshopId)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (registrationError) {
       console.error('Error checking workshop registration:', registrationError);
       return false;
     }
 
-    return (count || 0) > 0;
+    return !!data;
   } catch (error) {
     console.error('Error in isUserRegisteredForWorkshop:', error);
     return false;
@@ -206,9 +194,20 @@ export const registerForWorkshopViaAI = async (
 
     // Check if the user is already registered for this workshop
     if (userId) {
-      const isRegistered = await isUserRegisteredForWorkshop(userId, workshopTitle);
-      if (isRegistered) {
-        return { success: false, message: 'You are already registered for this workshop.' };
+      const { data, error: registrationCheckError } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('workshop_id', workshop.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (registrationCheckError) {
+        console.error('Error checking existing registration:', registrationCheckError);
+      } else if (data) {
+        return { 
+          success: false, 
+          message: `You are already registered for "${workshop.title}".`
+        };
       }
     }
 

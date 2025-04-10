@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 interface AdminContextType {
   isAdmin: boolean;
   loading: boolean;
-  checkAdminStatus: () => Promise<boolean>; // Add this method to the interface
+  checkAdminStatus: () => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -16,7 +16,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Add this function to check admin status
   const checkAdminStatus = async (): Promise<boolean> => {
     if (!user) {
       return false;

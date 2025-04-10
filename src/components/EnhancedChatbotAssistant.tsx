@@ -176,31 +176,21 @@ const EnhancedChatbotAssistant = () => {
         
         if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
           try {
-            const { data: profile } = await supabase
-              .from('profiles')
+            const { data: userData } = await supabase.auth.getUser();
+            userInfo.email = userInfo.email || userData?.user?.email;
+            
+            const { data: prevRegistration } = await supabase
+              .from('registrations')
               .select('*')
               .eq('user_id', user.id)
-              .single();
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
             
-            if (profile) {
-              userInfo.firstName = userInfo.firstName || profile.first_name || profile.full_name?.split(' ')[0];
-              userInfo.lastName = userInfo.lastName || profile.last_name || profile.full_name?.split(' ')[1];
-              userInfo.email = userInfo.email || profile.email || user.email;
-            } else {
-              userInfo.email = userInfo.email || user.email;
-              
-              const { data: prevRegistration } = await supabase
-                .from('registrations')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-              
-              if (prevRegistration) {
-                userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
-                userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
-              }
+            if (prevRegistration) {
+              userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
+              userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
+              userInfo.email = userInfo.email || prevRegistration.email;
             }
           } catch (error) {
             console.error('Error fetching user profile data:', error);
