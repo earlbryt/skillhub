@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import WorkshopDetails from "./pages/WorkshopDetails";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import UserProfile from "./pages/UserProfile";
+import EnhancedChatbotAssistant from "./components/EnhancedChatbotAssistant";
 
 // Admin imports
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -93,6 +95,9 @@ const App = () => (
               
               <Route path="*" element={<NotFound />} />
             </Routes>
+            
+            {/* Enhanced Chatbot Assistant */}
+            <EnhancedChatbotAssistant />
           </AdminProvider>
         </AuthProvider>
       </BrowserRouter>

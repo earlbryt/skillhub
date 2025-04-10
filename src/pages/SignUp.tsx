@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -127,7 +128,26 @@ const SignUp = () => {
                 </span>
               )}
             </Button>
-          
+            
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleGoogleSignUp}
+              disabled={isLoading}
+            >
+              <FcGoogle className="h-5 w-5 mr-2" />
+              Sign up with Google
+            </Button>
           </form>
           
           <div className="mt-6 text-center text-sm">
