@@ -30,6 +30,7 @@ const EnhancedChatbotAssistant = () => {
   const [sessionId, setSessionId] = useState<string>('');
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
   const [registrationData, setRegistrationData] = useState<any>(null);
+  const [processingRegistration, setProcessingRegistration] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -135,18 +136,98 @@ const EnhancedChatbotAssistant = () => {
         await saveChatMessage(user.id, sessionId, 'user', userMessage.content);
       }
       
-      const intentData = extractRegistrationIntent([...messages, userMessage]);
-      
-      if (intentData.intent && !registrationInProgress) {
-        if (intentData.workshopTitle) {
-          if (user?.id) {
-            const alreadyRegistered = await isUserRegisteredForWorkshop(
-              user.id, 
-              intentData.workshopTitle
-            );
+      if (registrationInProgress && !processingRegistration) {
+        setProcessingRegistration(true);
+        
+        try {
+          const updatedRegData = { ...registrationData };
+          const userInput = userMessage.content.toLowerCase();
+          
+          if (!updatedRegData.userInfo) updatedRegData.userInfo = {};
+          
+          const emailMatch = userInput.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+          if (emailMatch && !updatedRegData.userInfo.email) {
+            updatedRegData.userInfo.email = emailMatch[0];
+          }
+          
+          const nameMatch = userInput.includes('name is') || userInput.includes('i am')
+            ? userInput.split('name is')[1].trim()
+            : userInput.split('i am')[1].trim();
+          
+          if (nameMatch) {
+            const nameParts = nameMatch.split(' ');
+            if (!updatedRegData.userInfo.firstName && nameParts.length > 0) {
+              updatedRegData.userInfo.firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+            }
+            if (!updatedRegData.userInfo.lastName && nameParts.length > 1) {
+              updatedRegData.userInfo.lastName = nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1);
+            }
+          }
+          
+          const workshopMatch = userInput.includes('interested in') 
+            ? userInput.split('interested in')[1].trim()
+            : userInput.includes('sign up for')
+              ? userInput.split('sign up for')[1].trim()
+              : userInput.split('register for')[1].trim();
+          
+          if (workshopMatch) {
+            updatedRegData.workshopTitle = workshopMatch.split(/[.,!?]/)[0].trim();
+          }
+          
+          setRegistrationData(updatedRegData);
+          
+          if (updatedRegData.workshopTitle && updatedRegData.userInfo &&
+              ((user?.id) || 
+                (updatedRegData.userInfo.firstName &&
+                 updatedRegData.userInfo.lastName &&
+                 updatedRegData.userInfo.email))) {
             
-            if (alreadyRegistered) {
-              const assistantResponse = `You're already registered for the "${intentData.workshopTitle}" workshop. Is there anything else I can help you with?`;
+            let userInfo = updatedRegData.userInfo || {};
+            
+            if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
+              try {
+                const { data: userData } = await supabase.auth.getUser();
+                userInfo.email = userInfo.email || userData?.user?.email;
+                
+                const { data: prevRegistration } = await supabase
+                  .from('registrations')
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                
+                if (prevRegistration) {
+                  userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
+                  userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
+                  userInfo.email = userInfo.email || prevRegistration.email;
+                }
+              } catch (error) {
+                console.error('Error fetching user profile data:', error);
+              }
+            }
+            
+            if (userInfo.firstName && userInfo.lastName && userInfo.email) {
+              console.log("Attempting to register for workshop with data:", {
+                title: updatedRegData.workshopTitle,
+                user: user?.id || null,
+                userInfo
+              });
+              
+              const registrationResult = await registerForWorkshopViaAI(
+                updatedRegData.workshopTitle,
+                user?.id || null,
+                userInfo
+              );
+              
+              console.log("Registration result:", registrationResult);
+              
+              let assistantResponse = registrationResult.success
+                ? `Great! You're now registered for "${updatedRegData.workshopTitle}". You'll receive a confirmation email shortly with all the details. Is there anything else you'd like help with?`
+                : `I'm sorry, I couldn't complete your registration for "${updatedRegData.workshopTitle}". ${registrationResult.message} Is there anything else I can assist you with?`;
+              
+              setRegistrationInProgress(false);
+              setRegistrationData(null);
               
               setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
               
@@ -155,70 +236,45 @@ const EnhancedChatbotAssistant = () => {
               }
               
               setIsLoading(false);
+              setProcessingRegistration(false);
               return;
             }
           }
-          
-          setRegistrationInProgress(true);
-          setRegistrationData(intentData);
+        } catch (registrationError) {
+          console.error('Error in registration process:', registrationError);
+        } finally {
+          setProcessingRegistration(false);
         }
       }
       
-      if (
-        registrationInProgress && 
-        registrationData?.workshopTitle && 
-        ((user?.id) || 
-          (registrationData?.userInfo?.firstName &&
-           registrationData?.userInfo?.lastName &&
-           registrationData?.userInfo?.email))
-      ) {
-        let userInfo = registrationData.userInfo || {};
+      if (!registrationInProgress) {
+        const intentData = extractRegistrationIntent([...messages, userMessage]);
         
-        if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
-          try {
-            const { data: userData } = await supabase.auth.getUser();
-            userInfo.email = userInfo.email || userData?.user?.email;
-            
-            const { data: prevRegistration } = await supabase
-              .from('registrations')
-              .select('*')
-              .eq('user_id', user.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            if (prevRegistration) {
-              userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
-              userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
-              userInfo.email = userInfo.email || prevRegistration.email;
+        if (intentData.intent) {
+          if (intentData.workshopTitle) {
+            if (user?.id) {
+              const alreadyRegistered = await isUserRegisteredForWorkshop(
+                user.id, 
+                intentData.workshopTitle
+              );
+              
+              if (alreadyRegistered) {
+                const assistantResponse = `You're already registered for the "${intentData.workshopTitle}" workshop. Is there anything else I can help you with?`;
+                
+                setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+                
+                if (user?.id) {
+                  await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
+                }
+                
+                setIsLoading(false);
+                return;
+              }
             }
-          } catch (error) {
-            console.error('Error fetching user profile data:', error);
+            
+            setRegistrationInProgress(true);
+            setRegistrationData(intentData);
           }
-        }
-        
-        if (userInfo.firstName && userInfo.lastName && userInfo.email) {
-          const registrationResult = await registerForWorkshopViaAI(
-            registrationData.workshopTitle,
-            user?.id || null,
-            userInfo
-          );
-          
-          let assistantResponse = registrationResult.success
-            ? `Great! You're now registered for "${registrationData.workshopTitle}". You'll receive a confirmation email shortly with all the details. Is there anything else you'd like help with?`
-            : `I'm sorry, I couldn't complete your registration for "${registrationData.workshopTitle}". ${registrationResult.message} Is there anything else I can assist you with?`;
-          
-          setRegistrationInProgress(false);
-          setRegistrationData(null);
-          
-          setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
-          
-          if (user?.id) {
-            await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
-          }
-          
-          setIsLoading(false);
-          return;
         }
       }
       
@@ -234,43 +290,6 @@ const EnhancedChatbotAssistant = () => {
         await saveChatMessage(user.id, sessionId, 'assistant', response);
       }
       
-      if (registrationInProgress) {
-        const updatedRegData = { ...registrationData };
-        const userInput = userMessage.content.toLowerCase();
-        
-        if (!updatedRegData.userInfo) updatedRegData.userInfo = {};
-        
-        const emailMatch = userInput.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
-        if (emailMatch && !updatedRegData.userInfo.email) {
-          updatedRegData.userInfo.email = emailMatch[0];
-        }
-        
-        const nameMatch = userInput.includes('name is') || userInput.includes('i am')
-          ? userInput.split('name is')[1].trim()
-          : userInput.split('i am')[1].trim();
-        
-        if (nameMatch) {
-          const nameParts = nameMatch.split(' ');
-          if (!updatedRegData.userInfo.firstName && nameParts.length > 0) {
-            updatedRegData.userInfo.firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
-          }
-          if (!updatedRegData.userInfo.lastName && nameParts.length > 1) {
-            updatedRegData.userInfo.lastName = nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1);
-          }
-        }
-        
-        const workshopMatch = userInput.includes('interested in') 
-          ? userInput.split('interested in')[1].trim()
-          : userInput.includes('sign up for')
-            ? userInput.split('sign up for')[1].trim()
-            : userInput.split('register for')[1].trim();
-        
-        if (workshopMatch) {
-          updatedRegData.workshopTitle = workshopMatch.split(/[.,!?]/)[0].trim();
-        }
-        
-        setRegistrationData(updatedRegData);
-      }
     } catch (error) {
       console.error('Error in chat:', error);
       toast({

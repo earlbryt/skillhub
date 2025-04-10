@@ -194,16 +194,8 @@ export const registerForWorkshopViaAI = async (
 
     // Check if the user is already registered for this workshop
     if (userId) {
-      const { data, error: registrationCheckError } = await supabase
-        .from('registrations')
-        .select('*')
-        .eq('workshop_id', workshop.id)
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (registrationCheckError) {
-        console.error('Error checking existing registration:', registrationCheckError);
-      } else if (data) {
+      const isRegistered = await isUserRegisteredForWorkshop(userId, workshopTitle);
+      if (isRegistered) {
         return { 
           success: false, 
           message: `You are already registered for "${workshop.title}".`
@@ -236,17 +228,28 @@ export const registerForWorkshopViaAI = async (
       user_id: userId
     };
 
-    const { error: registrationError } = await supabase
+    console.log("Registering user with data:", registrationData);
+
+    const { data: registration, error: registrationError } = await supabase
       .from('registrations')
       .insert([{
         ...registrationData,
         status: 'confirmed'
-      }]);
+      }])
+      .select()
+      .single();
 
     if (registrationError) {
       console.error('Error registering for workshop:', registrationError);
-      return { success: false, message: 'Error registering for the workshop.' };
+      return { success: false, message: 'Error registering for the workshop: ' + registrationError.message };
     }
+
+    if (!registration) {
+      console.error('No registration data returned from database');
+      return { success: false, message: 'Error registering for the workshop: No data returned' };
+    }
+
+    console.log("Registration successful:", registration);
 
     // Get workshop details for the email
     try {
@@ -264,6 +267,8 @@ export const registerForWorkshopViaAI = async (
         workshopDescription: workshop.description
       };
       
+      console.log("Sending confirmation email with data:", emailData);
+      
       // Call the email function
       const response = await fetch(
         'https://znohucbxvuitqpparsyb.supabase.co/functions/v1/send-workshop-confirmation',
@@ -277,6 +282,8 @@ export const registerForWorkshopViaAI = async (
       );
       
       const result = await response.json();
+      console.log("Email sending result:", result);
+      
       if (!result.success) {
         console.error('Email sending failed:', result.error);
       }
@@ -292,7 +299,7 @@ export const registerForWorkshopViaAI = async (
     };
   } catch (error) {
     console.error('Error in registerForWorkshopViaAI:', error);
-    return { success: false, message: 'An unexpected error occurred.' };
+    return { success: false, message: 'An unexpected error occurred: ' + (error as Error).message };
   }
 };
 
