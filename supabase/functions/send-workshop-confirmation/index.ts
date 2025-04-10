@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
+// Use the RESEND_API_KEY from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
@@ -38,6 +39,10 @@ const handler = async (req: Request): Promise<Response> => {
       month: 'long',
       day: 'numeric'
     });
+
+    // Log the API key (masked for security, just the length)
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    console.log(`Using Resend API key (length: ${apiKey?.length || 0})`);
 
     const { error } = await resend.emails.send({
       from: "Workshop Hub <onboarding@resend.dev>",

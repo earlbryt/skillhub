@@ -3,7 +3,6 @@ import { generateChatResponse } from './groqService';
 import { Workshop, Registration } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
-// Explicitly define the RegistrationData interface here to avoid import issues
 export interface RegistrationData {
   workshop_id: string;
   first_name: string;
@@ -13,7 +12,6 @@ export interface RegistrationData {
   user_id: string | null;
 }
 
-// Fetch real-time workshop data from the database
 export const fetchWorkshopsFromDatabase = async (): Promise<Workshop[]> => {
   const { data, error } = await supabase
     .from('workshops')
@@ -28,7 +26,6 @@ export const fetchWorkshopsFromDatabase = async (): Promise<Workshop[]> => {
   return data || [];
 };
 
-// Format workshop data for the AI assistant
 export const formatWorkshopDataForAI = (workshops: Workshop[]): string => {
   if (!workshops || workshops.length === 0) {
     return "No workshops are currently available.";
@@ -53,14 +50,12 @@ Instructor: ${workshop.instructor || 'TBA'}
   return formattedWorkshops;
 };
 
-// Get user data for personalization
 export const getUserDataForAI = async (userId: string | null): Promise<string> => {
   if (!userId) {
     return "You are not logged in. I don't have any personal information about you.";
   }
 
   try {
-    // Get user registrations with workshop details
     const { data: registrations, error: registrationsError } = await supabase
       .from('registrations')
       .select(`
@@ -76,7 +71,6 @@ export const getUserDataForAI = async (userId: string | null): Promise<string> =
 
     let userData = "";
     
-    // Try to get basic info from registrations
     if (registrations && registrations.length > 0) {
       const firstRegistration = registrations[0];
       userData += `
@@ -85,9 +79,7 @@ Name: ${firstRegistration.first_name} ${firstRegistration.last_name}
 Email: ${firstRegistration.email}
 Phone: ${firstRegistration.phone || 'No phone provided'}
 `;
-    
-      // Format user's registered workshops
-      userData += "\nRegistered Workshops:\n";
+      
       registrations.forEach((reg, index) => {
         if (reg.workshop) {
           const workshop = reg.workshop;
@@ -101,7 +93,6 @@ ${index + 1}. ${workshop.title}
         }
       });
     } else {
-      // If no registrations, try to get user info directly
       const { data: auth } = await supabase.auth.getUser();
       if (auth && auth.user) {
         userData += `
@@ -120,7 +111,6 @@ Email: ${auth.user.email || 'No email provided'}
   }
 };
 
-// Check if user is registered for a specific workshop
 export const isUserRegisteredForWorkshop = async (
   userId: string | null,
   workshopTitle: string
@@ -128,7 +118,6 @@ export const isUserRegisteredForWorkshop = async (
   if (!userId) return false;
 
   try {
-    // First find the workshop by title
     const { data: workshops, error: workshopError } = await supabase
       .from('workshops')
       .select('id')
@@ -142,7 +131,6 @@ export const isUserRegisteredForWorkshop = async (
 
     const workshopId = workshops[0].id;
 
-    // Then check if the user is registered
     const { data, error: registrationError } = await supabase
       .from('registrations')
       .select('*')
@@ -162,7 +150,6 @@ export const isUserRegisteredForWorkshop = async (
   }
 };
 
-// Register a user for a workshop
 export const registerForWorkshopViaAI = async (
   workshopTitle: string,
   userId: string | null,
@@ -174,7 +161,8 @@ export const registerForWorkshopViaAI = async (
   }
 ): Promise<{ success: boolean; message: string; workshopId?: string }> => {
   try {
-    // Find the workshop by title
+    console.log(`Starting registration process for workshop: ${workshopTitle}, user: ${userId || 'guest'}`);
+    
     const { data: workshops, error: workshopError } = await supabase
       .from('workshops')
       .select('*')
@@ -187,15 +175,31 @@ export const registerForWorkshopViaAI = async (
     }
 
     if (!workshops || workshops.length === 0) {
-      return { success: false, message: 'Workshop not found. Please check the workshop title and try again.' };
+      console.log(`No workshop found matching title: ${workshopTitle}`);
+      return { 
+        success: false, 
+        message: 'Workshop not found. Please check the workshop title and try again.' 
+      };
     }
 
     const workshop = workshops[0];
+    console.log(`Found workshop: ${workshop.title} (${workshop.id})`);
 
-    // Check if the user is already registered for this workshop
     if (userId) {
-      const isRegistered = await isUserRegisteredForWorkshop(userId, workshopTitle);
-      if (isRegistered) {
+      console.log(`Checking if user ${userId} is already registered for workshop ${workshop.id}`);
+      const { data: existingRegistrations, error: registrationCheckError } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('workshop_id', workshop.id)
+        .eq('user_id', userId);
+
+      if (registrationCheckError) {
+        console.error('Error checking existing registrations:', registrationCheckError);
+        return { success: false, message: 'Error checking if you are already registered.' };
+      }
+
+      if (existingRegistrations && existingRegistrations.length > 0) {
+        console.log(`User ${userId} is already registered for workshop ${workshop.id}`);
         return { 
           success: false, 
           message: `You are already registered for "${workshop.title}".`
@@ -203,7 +207,6 @@ export const registerForWorkshopViaAI = async (
       }
     }
 
-    // Check if the workshop is full
     const { count, error: countError } = await supabase
       .from('registrations')
       .select('*', { count: 'exact', head: true })
@@ -214,11 +217,11 @@ export const registerForWorkshopViaAI = async (
       return { success: false, message: 'Error checking workshop capacity.' };
     }
 
-    if (count && count >= workshop.capacity) {
+    if (count !== null && count >= workshop.capacity) {
+      console.log(`Workshop ${workshop.id} is full (capacity: ${workshop.capacity})`);
       return { success: false, message: 'This workshop is already full.' };
     }
 
-    // Register the user for the workshop
     const registrationData: RegistrationData = {
       workshop_id: workshop.id,
       first_name: userInfo.firstName,
@@ -251,7 +254,6 @@ export const registerForWorkshopViaAI = async (
 
     console.log("Registration successful:", registration);
 
-    // Get workshop details for the email
     try {
       const startDate = new Date(workshop.start_date);
       const endDate = new Date(workshop.end_date);
@@ -269,7 +271,6 @@ export const registerForWorkshopViaAI = async (
       
       console.log("Sending confirmation email with data:", emailData);
       
-      // Call the email function
       const response = await fetch(
         'https://znohucbxvuitqpparsyb.supabase.co/functions/v1/send-workshop-confirmation',
         {
@@ -281,11 +282,17 @@ export const registerForWorkshopViaAI = async (
         }
       );
       
-      const result = await response.json();
-      console.log("Email sending result:", result);
-      
-      if (!result.success) {
-        console.error('Email sending failed:', result.error);
+      if (!response.ok) {
+        console.error('Email sending failed with status:', response.status);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+      } else {
+        const result = await response.json();
+        console.log("Email sending result:", result);
+        
+        if (!result.success) {
+          console.error('Email sending failed:', result.error);
+        }
       }
     } catch (emailError) {
       console.error('Error sending confirmation email:', emailError);
@@ -303,7 +310,6 @@ export const registerForWorkshopViaAI = async (
   }
 };
 
-// Get chat history for a user
 export const getChatHistory = async (userId: string | null, sessionId: string): Promise<{role: 'user' | 'assistant' | 'system', content: string}[]> => {
   if (!userId) return [];
 
@@ -330,7 +336,6 @@ export const getChatHistory = async (userId: string | null, sessionId: string): 
   }
 };
 
-// Save chat message to history
 export const saveChatMessage = async (
   userId: string | null, 
   sessionId: string,
@@ -363,16 +368,13 @@ export const saveChatMessage = async (
   }
 };
 
-// Generate system prompt with real-time workshop data and user data
 export const generateSystemPromptWithRealTimeData = async (
   userId: string | null = null
 ): Promise<string> => {
   try {
-    // Get real-time workshop data
     const workshops = await fetchWorkshopsFromDatabase();
     const workshopData = formatWorkshopDataForAI(workshops);
     
-    // Get user profile if logged in
     let userGreeting = "I don't have any information about you yet.";
     let userData = "";
     
@@ -422,7 +424,6 @@ When users want to register for a workshop, try to collect all required informat
   } catch (error) {
     console.error('Error generating system prompt with real-time data:', error);
     
-    // Return fallback system prompt
     return `You are a helpful assistant for Workshop Hub, a platform where students can sign up for educational workshops.
 Your name is WorkshopBot.
 
@@ -431,7 +432,6 @@ I can still help answer general questions about Workshop Hub and the registratio
   }
 };
 
-// Extract registration intent from conversation
 export const extractRegistrationIntent = (
   messages: {role: string, content: string}[]
 ): {
@@ -444,12 +444,10 @@ export const extractRegistrationIntent = (
     phone?: string;
   };
 } => {
-  // This is a simple implementation - in a real app, you might want to use AI for this
   const userMessages = messages
     .filter(msg => msg.role === 'user')
     .map(msg => msg.content.toLowerCase());
   
-  // Check for registration intent
   const registrationPhrases = ['register', 'sign up', 'join', 'enroll'];
   const hasRegistrationIntent = userMessages.some(msg => 
     registrationPhrases.some(phrase => msg.includes(phrase))
@@ -459,7 +457,6 @@ export const extractRegistrationIntent = (
     return { intent: false };
   }
   
-  // Extract workshop title (very simple approach)
   let workshopTitle;
   for (const msg of userMessages) {
     const forIndex = msg.indexOf(' for ');
@@ -474,10 +471,8 @@ export const extractRegistrationIntent = (
     }
   }
   
-  // Extract user info (very simple approach)
   const userInfo: any = {};
   
-  // This is a very simplified example - in reality, you'd want to use NLP or other techniques
   for (const msg of userMessages) {
     if (msg.includes('name is')) {
       const nameparts = msg.split('name is')[1].trim().split(' ');
