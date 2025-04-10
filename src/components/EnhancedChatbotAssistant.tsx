@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, ChevronDown, ChevronUp, Loader2, UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { generateChatResponse, ChatMessage } from '@/services/groqService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/lib/supabase';
 import { 
   getChatHistory, 
   saveChatMessage, 
@@ -36,9 +36,7 @@ const EnhancedChatbotAssistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Initialize session ID and chat history
   useEffect(() => {
-    // Create or retrieve session ID from localStorage
     let chatSessionId = localStorage.getItem('workshop_chat_session_id');
     if (!chatSessionId) {
       chatSessionId = uuidv4();
@@ -49,18 +47,15 @@ const EnhancedChatbotAssistant = () => {
     const loadChatHistory = async () => {
       setIsInitializing(true);
       try {
-        // Generate system prompt with real-time data
         const prompt = await generateSystemPromptWithRealTimeData(user?.id || null);
         setSystemPrompt(prompt);
 
-        // Load chat history if the user is logged in
         if (user?.id) {
           const history = await getChatHistory(user.id, chatSessionId);
           
           if (history && history.length > 0) {
             setMessages(history as ChatMessage[]);
           } else {
-            // If no history, set default welcome message
             const welcomeMessage: ChatMessage = { 
               role: 'assistant', 
               content: 'Hi there! 👋 I\'m WorkshopBot, your Workshop Hub assistant. How can I help you today?' 
@@ -68,7 +63,6 @@ const EnhancedChatbotAssistant = () => {
             
             setMessages([welcomeMessage]);
             
-            // Save welcome message to chat history
             await saveChatMessage(
               user.id,
               chatSessionId,
@@ -77,7 +71,6 @@ const EnhancedChatbotAssistant = () => {
             );
           }
         } else {
-          // Default welcome message for non-logged in users
           setMessages([
             { 
               role: 'assistant', 
@@ -87,7 +80,6 @@ const EnhancedChatbotAssistant = () => {
         }
       } catch (error) {
         console.error('Error initializing chat:', error);
-        // Fallback welcome message
         setMessages([
           { 
             role: 'assistant', 
@@ -102,12 +94,10 @@ const EnhancedChatbotAssistant = () => {
     loadChatHistory();
   }, [user]);
 
-  // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Focus input when chat is opened
   useEffect(() => {
     if (isOpen && !isMinimized) {
       setTimeout(() => {
@@ -136,25 +126,19 @@ const EnhancedChatbotAssistant = () => {
     
     const userMessage: ChatMessage = { role: 'user', content: input };
     
-    // Update messages with user input
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
     
     try {
-      // Save user message to chat history if logged in
       if (user?.id) {
         await saveChatMessage(user.id, sessionId, 'user', userMessage.content);
       }
       
-      // Check for registration intent
       const intentData = extractRegistrationIntent([...messages, userMessage]);
       
-      // Handle registration process
       if (intentData.intent && !registrationInProgress) {
-        // Only begin registration process if there's a workshop title
         if (intentData.workshopTitle) {
-          // If user is logged in, check if they're already registered
           if (user?.id) {
             const alreadyRegistered = await isUserRegisteredForWorkshop(
               user.id, 
@@ -164,10 +148,8 @@ const EnhancedChatbotAssistant = () => {
             if (alreadyRegistered) {
               const assistantResponse = `You're already registered for the "${intentData.workshopTitle}" workshop. Is there anything else I can help you with?`;
               
-              // Add assistant response
               setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
               
-              // Save assistant message to chat history
               if (user?.id) {
                 await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
               }
@@ -182,21 +164,18 @@ const EnhancedChatbotAssistant = () => {
         }
       }
       
-      // Complete registration if we have all the necessary info
       if (
         registrationInProgress && 
         registrationData?.workshopTitle && 
-        ((user?.id) || // For logged-in users, we'll get their info from the database
+        ((user?.id) || 
           (registrationData?.userInfo?.firstName &&
            registrationData?.userInfo?.lastName &&
            registrationData?.userInfo?.email))
       ) {
         let userInfo = registrationData.userInfo || {};
         
-        // For logged-in users, try to get their info from the database if missing
         if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
           try {
-            // First check profiles table
             const { data: profile } = await supabase
               .from('profiles')
               .select('*')
@@ -208,10 +187,8 @@ const EnhancedChatbotAssistant = () => {
               userInfo.lastName = userInfo.lastName || profile.last_name || profile.full_name?.split(' ')[1];
               userInfo.email = userInfo.email || profile.email || user.email;
             } else {
-              // If no profile, try to get from user's email
               userInfo.email = userInfo.email || user.email;
               
-              // If still missing firstName/lastName, try to extract from previous registrations
               const { data: prevRegistration } = await supabase
                 .from('registrations')
                 .select('*')
@@ -227,32 +204,25 @@ const EnhancedChatbotAssistant = () => {
             }
           } catch (error) {
             console.error('Error fetching user profile data:', error);
-            // Continue with what we have
           }
         }
         
-        // Check if we have all required info
         if (userInfo.firstName && userInfo.lastName && userInfo.email) {
-          // Attempt to register the user
           const registrationResult = await registerForWorkshopViaAI(
             registrationData.workshopTitle,
             user?.id || null,
             userInfo
           );
           
-          // Generate response based on registration result
           let assistantResponse = registrationResult.success
             ? `Great! You're now registered for "${registrationData.workshopTitle}". You'll receive a confirmation email shortly with all the details. Is there anything else you'd like help with?`
             : `I'm sorry, I couldn't complete your registration for "${registrationData.workshopTitle}". ${registrationResult.message} Is there anything else I can assist you with?`;
           
-          // Reset registration state
           setRegistrationInProgress(false);
           setRegistrationData(null);
           
-          // Add assistant response
           setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
           
-          // Save assistant message to chat history if logged in
           if (user?.id) {
             await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
           }
@@ -262,64 +232,51 @@ const EnhancedChatbotAssistant = () => {
         }
       }
       
-      // Get response from AI with system prompt
       const response = await generateChatResponse([
         { role: 'system', content: systemPrompt },
         ...messages,
         userMessage
       ]);
       
-      // Add assistant response
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       
-      // Save assistant message to chat history if logged in
       if (user?.id) {
         await saveChatMessage(user.id, sessionId, 'assistant', response);
       }
       
-      // Update registration data based on AI response
       if (registrationInProgress) {
         const updatedRegData = { ...registrationData };
         const userInput = userMessage.content.toLowerCase();
         
-        // Very simple parsing - in a real app, use NLP or AI to extract this info
         if (!updatedRegData.userInfo) updatedRegData.userInfo = {};
         
-        // Try to extract email
         const emailMatch = userInput.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
         if (emailMatch && !updatedRegData.userInfo.email) {
           updatedRegData.userInfo.email = emailMatch[0];
         }
         
-        // Try to extract name
-        if (userInput.includes('name is') || userInput.includes('i am')) {
-          const nameMatch = userInput.includes('name is') 
-            ? userInput.split('name is')[1].trim()
-            : userInput.split('i am')[1].trim();
-          
-          if (nameMatch) {
-            const nameParts = nameMatch.split(' ');
-            if (!updatedRegData.userInfo.firstName && nameParts.length > 0) {
-              updatedRegData.userInfo.firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
-            }
-            if (!updatedRegData.userInfo.lastName && nameParts.length > 1) {
-              updatedRegData.userInfo.lastName = nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1);
-            }
+        const nameMatch = userInput.includes('name is') || userInput.includes('i am')
+          ? userInput.split('name is')[1].trim()
+          : userInput.split('i am')[1].trim();
+        
+        if (nameMatch) {
+          const nameParts = nameMatch.split(' ');
+          if (!updatedRegData.userInfo.firstName && nameParts.length > 0) {
+            updatedRegData.userInfo.firstName = nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1);
+          }
+          if (!updatedRegData.userInfo.lastName && nameParts.length > 1) {
+            updatedRegData.userInfo.lastName = nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1);
           }
         }
         
-        // Try to extract workshop title if not already set
-        if (!updatedRegData.workshopTitle && 
-            (userInput.includes('interested in') || userInput.includes('sign up for') || userInput.includes('register for'))) {
-          const workshopMatch = userInput.includes('interested in') 
-            ? userInput.split('interested in')[1].trim()
-            : userInput.includes('sign up for')
-              ? userInput.split('sign up for')[1].trim()
-              : userInput.split('register for')[1].trim();
-          
-          if (workshopMatch) {
-            updatedRegData.workshopTitle = workshopMatch.split(/[.,!?]/)[0].trim();
-          }
+        const workshopMatch = userInput.includes('interested in') 
+          ? userInput.split('interested in')[1].trim()
+          : userInput.includes('sign up for')
+            ? userInput.split('sign up for')[1].trim()
+            : userInput.split('register for')[1].trim();
+        
+        if (workshopMatch) {
+          updatedRegData.workshopTitle = workshopMatch.split(/[.,!?]/)[0].trim();
         }
         
         setRegistrationData(updatedRegData);
@@ -332,7 +289,6 @@ const EnhancedChatbotAssistant = () => {
         variant: 'destructive'
       });
       
-      // Add error message
       setMessages(prev => [
         ...prev, 
         { 
@@ -345,24 +301,17 @@ const EnhancedChatbotAssistant = () => {
     }
   };
 
-  // Format message content with markdown-like syntax
   const formatMessage = (content: string) => {
-    // Replace **text** with bold
     const boldFormatted = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Replace URLs with links
     const urlFormatted = boldFormatted.replace(
       /(https?:\/\/[^\s]+)/g, 
       '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
     );
-    
-    // Replace newlines with <br>
     return urlFormatted.replace(/\n/g, '<br>');
   };
 
   return (
     <>
-      {/* Chat toggle button */}
       <Button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 z-50"
@@ -375,7 +324,6 @@ const EnhancedChatbotAssistant = () => {
         )}
       </Button>
 
-      {/* Chat window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -385,7 +333,6 @@ const EnhancedChatbotAssistant = () => {
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className={`fixed bottom-28 md:bottom-32 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[65vh] max-h-[550px]'}`}
           >
-            {/* Chat header */}
             <div 
               className="bg-primary text-primary-foreground p-4 flex justify-between items-center cursor-pointer"
               onClick={() => isMinimized && setIsMinimized(false)}
@@ -419,7 +366,6 @@ const EnhancedChatbotAssistant = () => {
 
             {!isMinimized && (
               <>
-                {/* Chat messages */}
                 <ScrollArea className="flex-1 p-4 h-[calc(65vh-140px)] max-h-[calc(550px-140px)]">
                   <div className="space-y-4">
                     {isInitializing ? (
@@ -465,7 +411,6 @@ const EnhancedChatbotAssistant = () => {
                   </div>
                 </ScrollArea>
 
-                {/* Chat input */}
                 <form onSubmit={handleSubmit} className="border-t p-4 bg-background">
                   <div className="flex space-x-2">
                     <Input
@@ -490,7 +435,6 @@ const EnhancedChatbotAssistant = () => {
                     </Button>
                   </div>
 
-                  {/* Login prompt for non-authenticated users */}
                   {!user && (
                     <div className="mt-3 text-center text-xs text-muted-foreground border-t pt-3">
                       <span>Sign in to get personalized assistance and register for workshops directly.</span>{' '}

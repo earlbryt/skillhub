@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -5,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 interface AdminContextType {
   isAdmin: boolean;
   loading: boolean;
+  checkAdminStatus: () => Promise<boolean>; // Add this method to the interface
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -14,8 +16,35 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Add this function to check admin status
+  const checkAdminStatus = async (): Promise<boolean> => {
+    if (!user) {
+      return false;
+    }
+
+    try {
+      // Check if the user exists in the admin_users table
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+
+      // If we found a record, the user is an admin
+      return !!data;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkUserAdminStatus = async () => {
       if (!user || authLoading) {
         setIsAdmin(false);
         setLoading(false);
@@ -48,11 +77,11 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     };
 
-    checkAdminStatus();
+    checkUserAdminStatus();
   }, [user, authLoading]);
 
   return (
-    <AdminContext.Provider value={{ isAdmin, loading }}>
+    <AdminContext.Provider value={{ isAdmin, loading, checkAdminStatus }}>
       {children}
     </AdminContext.Provider>
   );
