@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { Workshop, Registration } from '@/types/supabase';
 
@@ -86,6 +87,7 @@ export const registerForWorkshop = async (registrationData: RegistrationData): P
   try {
     const now = new Date().toISOString();
     
+    // Register the user
     const { error } = await supabase
       .from('registrations')
       .insert([{
@@ -98,6 +100,55 @@ export const registerForWorkshop = async (registrationData: RegistrationData): P
     if (error) {
       console.error('Error registering for workshop:', error);
       return { success: false, error };
+    }
+    
+    // Get workshop details for the email
+    const { data: workshop, error: workshopError } = await supabase
+      .from('workshops')
+      .select('*')
+      .eq('id', registrationData.workshop_id)
+      .single();
+      
+    if (workshopError) {
+      console.error('Error fetching workshop details for email:', workshopError);
+      // Continue anyway, we still registered the user successfully
+    } else {
+      // Send confirmation email if we got the workshop details
+      try {
+        const startDate = new Date(workshop.start_date);
+        const endDate = new Date(workshop.end_date);
+        
+        const emailData = {
+          to: registrationData.email,
+          firstName: registrationData.first_name,
+          lastName: registrationData.last_name,
+          workshopTitle: workshop.title,
+          workshopDate: workshop.start_date,
+          workshopTime: `${startDate.toLocaleTimeString()} - ${endDate.toLocaleTimeString()}`,
+          workshopLocation: workshop.location,
+          workshopDescription: workshop.description
+        };
+        
+        // Call the email function
+        const response = await fetch(
+          'https://znohucbxvuitqpparsyb.supabase.co/functions/v1/send-workshop-confirmation',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData),
+          }
+        );
+        
+        const result = await response.json();
+        if (!result.success) {
+          console.error('Email sending failed:', result.error);
+        }
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Continue anyway, we still registered the user successfully
+      }
     }
     
     return { success: true };

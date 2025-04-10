@@ -1,8 +1,18 @@
 
 import { supabase } from '@/lib/supabase';
 import { generateChatResponse } from './groqService';
-import { Workshop, Registration, RegistrationData } from '@/types/supabase';
+import { Workshop, Registration } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
+
+// Explicitly define the RegistrationData interface here to avoid import issues
+export interface RegistrationData {
+  workshop_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  user_id: string | null;
+}
 
 // Fetch real-time workshop data from the database
 export const fetchWorkshopsFromDatabase = async (): Promise<Workshop[]> => {
@@ -44,6 +54,126 @@ Instructor: ${workshop.instructor || 'TBA'}
   return formattedWorkshops;
 };
 
+// Get user data for personalization
+export const getUserDataForAI = async (userId: string | null): Promise<string> => {
+  if (!userId) {
+    return "You are not logged in. I don't have any personal information about you.";
+  }
+
+  try {
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+    }
+
+    // Get user registrations with workshop details
+    const { data: registrations, error: registrationsError } = await supabase
+      .from('registrations')
+      .select(`
+        *,
+        workshop:workshops(*)
+      `)
+      .eq('user_id', userId);
+
+    if (registrationsError) {
+      console.error('Error fetching user registrations:', registrationsError);
+    }
+
+    let userData = "";
+    
+    // Format user profile data
+    if (profile) {
+      userData += `
+User Information:
+Name: ${profile.full_name || 'No name provided'}
+Email: ${profile.email || 'No email provided'}
+Phone: ${profile.phone || 'No phone provided'}
+`;
+    } else {
+      // If no profile, try to get basic info from registrations
+      if (registrations && registrations.length > 0) {
+        const firstRegistration = registrations[0];
+        userData += `
+User Information:
+Name: ${firstRegistration.first_name} ${firstRegistration.last_name}
+Email: ${firstRegistration.email}
+Phone: ${firstRegistration.phone || 'No phone provided'}
+`;
+      }
+    }
+
+    // Format user's registered workshops
+    if (registrations && registrations.length > 0) {
+      userData += "\nRegistered Workshops:\n";
+      registrations.forEach((reg, index) => {
+        if (reg.workshop) {
+          const workshop = reg.workshop;
+          const startDate = new Date(workshop.start_date);
+          userData += `
+${index + 1}. ${workshop.title}
+   Date: ${startDate.toLocaleDateString()}
+   Location: ${workshop.location}
+   Status: ${reg.status}
+`;
+        }
+      });
+    } else {
+      userData += "\nNo registered workshops found.";
+    }
+
+    return userData;
+  } catch (error) {
+    console.error('Error getting user data for AI:', error);
+    return "I'm having trouble retrieving your personal information at the moment.";
+  }
+};
+
+// Check if user is registered for a specific workshop
+export const isUserRegisteredForWorkshop = async (
+  userId: string | null,
+  workshopTitle: string
+): Promise<boolean> => {
+  if (!userId) return false;
+
+  try {
+    // First find the workshop by title
+    const { data: workshops, error: workshopError } = await supabase
+      .from('workshops')
+      .select('id')
+      .ilike('title', `%${workshopTitle}%`)
+      .limit(1);
+
+    if (workshopError || !workshops || workshops.length === 0) {
+      return false;
+    }
+
+    const workshopId = workshops[0].id;
+
+    // Then check if the user is registered
+    const { count, error: registrationError } = await supabase
+      .from('registrations')
+      .select('*', { count: 'exact', head: true })
+      .eq('workshop_id', workshopId)
+      .eq('user_id', userId);
+
+    if (registrationError) {
+      console.error('Error checking workshop registration:', registrationError);
+      return false;
+    }
+
+    return (count || 0) > 0;
+  } catch (error) {
+    console.error('Error in isUserRegisteredForWorkshop:', error);
+    return false;
+  }
+};
+
 // Register a user for a workshop
 export const registerForWorkshopViaAI = async (
   workshopTitle: string,
@@ -76,15 +206,8 @@ export const registerForWorkshopViaAI = async (
 
     // Check if the user is already registered for this workshop
     if (userId) {
-      const { data: existingRegistrations, error: registrationCheckError } = await supabase
-        .from('registrations')
-        .select('*')
-        .eq('workshop_id', workshop.id)
-        .eq('user_id', userId);
-
-      if (registrationCheckError) {
-        console.error('Error checking existing registration:', registrationCheckError);
-      } else if (existingRegistrations && existingRegistrations.length > 0) {
+      const isRegistered = await isUserRegisteredForWorkshop(userId, workshopTitle);
+      if (isRegistered) {
         return { success: false, message: 'You are already registered for this workshop.' };
       }
     }
@@ -126,9 +249,46 @@ export const registerForWorkshopViaAI = async (
       return { success: false, message: 'Error registering for the workshop.' };
     }
 
+    // Get workshop details for the email
+    try {
+      const startDate = new Date(workshop.start_date);
+      const endDate = new Date(workshop.end_date);
+      
+      const emailData = {
+        to: userInfo.email,
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        workshopTitle: workshop.title,
+        workshopDate: workshop.start_date,
+        workshopTime: `${startDate.toLocaleTimeString()} - ${endDate.toLocaleTimeString()}`,
+        workshopLocation: workshop.location,
+        workshopDescription: workshop.description
+      };
+      
+      // Call the email function
+      const response = await fetch(
+        'https://znohucbxvuitqpparsyb.supabase.co/functions/v1/send-workshop-confirmation',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailData),
+        }
+      );
+      
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Email sending failed:', result.error);
+      }
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Continue anyway, the registration was successful
+    }
+
     return { 
       success: true, 
-      message: `Registration successful for ${workshop.title}!`,
+      message: `Registration successful for ${workshop.title}! A confirmation email has been sent to ${userInfo.email}.`,
       workshopId: workshop.id
     };
   } catch (error) {
@@ -138,7 +298,7 @@ export const registerForWorkshopViaAI = async (
 };
 
 // Get chat history for a user
-export const getChatHistory = async (userId: string | null, sessionId: string): Promise<{role: string, content: string}[]> => {
+export const getChatHistory = async (userId: string | null, sessionId: string): Promise<{role: 'user' | 'assistant' | 'system', content: string}[]> => {
   if (!userId) return [];
 
   try {
@@ -155,7 +315,7 @@ export const getChatHistory = async (userId: string | null, sessionId: string): 
     }
 
     return data.map(item => ({
-      role: item.role,
+      role: item.role as 'user' | 'assistant' | 'system',
       content: item.message
     }));
   } catch (error) {
@@ -168,7 +328,7 @@ export const getChatHistory = async (userId: string | null, sessionId: string): 
 export const saveChatMessage = async (
   userId: string | null, 
   sessionId: string,
-  role: 'user' | 'assistant',
+  role: 'user' | 'assistant' | 'system',
   message: string
 ): Promise<boolean> => {
   if (!userId) return false;
@@ -197,7 +357,7 @@ export const saveChatMessage = async (
   }
 };
 
-// Generate system prompt with real-time workshop data
+// Generate system prompt with real-time workshop data and user data
 export const generateSystemPromptWithRealTimeData = async (
   userId: string | null = null
 ): Promise<string> => {
@@ -208,23 +368,19 @@ export const generateSystemPromptWithRealTimeData = async (
     
     // Get user profile if logged in
     let userGreeting = "I don't have any information about you yet.";
+    let userData = "";
     
     if (userId) {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (!error && profile) {
-        userGreeting = `I see you're ${profile.full_name || 'a registered user'}. How can I assist you today?`;
-      }
+      userData = await getUserDataForAI(userId);
+      userGreeting = `I see you're logged in. How can I assist you today?`;
     }
 
     return `You are a helpful assistant for Workshop Hub, a platform where students can sign up for educational workshops. 
 Your name is WorkshopBot.
 
 ${userGreeting}
+
+${userData}
 
 This is data about the current workshops available to sign up for:
 
@@ -237,12 +393,14 @@ You can help students with but not limited to:
 4. Answering questions about workshop content and prerequisites
 5. Suggesting workshops based on a student's academic interests
 6. Helping users register for workshops directly through our chat
+7. Providing information about the user's registered workshops when asked
 
 When helping users register for workshops:
-1. If they express interest in a specific workshop, ask if they'd like to register for it
-2. If they want to register, collect their first name, last name, and email
-3. Confirm their registration details before submitting
-4. Let them know the registration was successful and what to expect next
+1. If they express interest in a specific workshop, check if they're already registered
+2. For logged-in users, use their stored information (name, email) for registration
+3. For non-logged-in users, collect their first name, last name, and email
+4. Confirm their registration details before submitting
+5. Let them know the registration was successful and what to expect next
 
 Be friendly, concise, and helpful. If you don't know the answer to a specific question about a particular workshop's details that isn't included in the data above, politely ask the user to check the workshop page or contact the workshop organizer directly.
 
@@ -250,7 +408,7 @@ Current date: ${new Date().toLocaleDateString()}
 
 REGISTRATION PROCESS:
 1. Express interest in registering for a specific workshop
-2. Provide your personal details (name, email)
+2. For non-logged-in users, provide personal details (name, email)
 3. Confirm your registration
 4. For paid workshops, you'll receive payment instructions separately
 
@@ -336,4 +494,3 @@ export const extractRegistrationIntent = (
     userInfo: Object.keys(userInfo).length ? userInfo : undefined
   };
 };
-

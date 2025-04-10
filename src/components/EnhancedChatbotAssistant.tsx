@@ -15,7 +15,8 @@ import {
   saveChatMessage, 
   generateSystemPromptWithRealTimeData,
   extractRegistrationIntent,
-  registerForWorkshopViaAI 
+  registerForWorkshopViaAI,
+  isUserRegisteredForWorkshop
 } from '@/services/aiAssistantService';
 
 const EnhancedChatbotAssistant = () => {
@@ -57,22 +58,22 @@ const EnhancedChatbotAssistant = () => {
           const history = await getChatHistory(user.id, chatSessionId);
           
           if (history && history.length > 0) {
-            setMessages(history);
+            setMessages(history as ChatMessage[]);
           } else {
             // If no history, set default welcome message
-            setMessages([
-              { 
-                role: 'assistant', 
-                content: 'Hi there! 👋 I\'m WorkshopBot, your Workshop Hub assistant. How can I help you today?' 
-              }
-            ]);
+            const welcomeMessage: ChatMessage = { 
+              role: 'assistant', 
+              content: 'Hi there! 👋 I\'m WorkshopBot, your Workshop Hub assistant. How can I help you today?' 
+            };
+            
+            setMessages([welcomeMessage]);
             
             // Save welcome message to chat history
             await saveChatMessage(
               user.id,
               chatSessionId,
               'assistant',
-              'Hi there! 👋 I\'m WorkshopBot, your Workshop Hub assistant. How can I help you today?'
+              welcomeMessage.content
             );
           }
         } else {
@@ -151,44 +152,114 @@ const EnhancedChatbotAssistant = () => {
       
       // Handle registration process
       if (intentData.intent && !registrationInProgress) {
-        setRegistrationInProgress(true);
-        setRegistrationData(intentData);
+        // Only begin registration process if there's a workshop title
+        if (intentData.workshopTitle) {
+          // If user is logged in, check if they're already registered
+          if (user?.id) {
+            const alreadyRegistered = await isUserRegisteredForWorkshop(
+              user.id, 
+              intentData.workshopTitle
+            );
+            
+            if (alreadyRegistered) {
+              const assistantResponse = `You're already registered for the "${intentData.workshopTitle}" workshop. Is there anything else I can help you with?`;
+              
+              // Add assistant response
+              setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+              
+              // Save assistant message to chat history
+              if (user?.id) {
+                await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
+              }
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+          
+          setRegistrationInProgress(true);
+          setRegistrationData(intentData);
+        }
       }
       
       // Complete registration if we have all the necessary info
       if (
         registrationInProgress && 
         registrationData?.workshopTitle && 
-        registrationData?.userInfo?.firstName &&
-        registrationData?.userInfo?.lastName &&
-        registrationData?.userInfo?.email
+        ((user?.id) || // For logged-in users, we'll get their info from the database
+          (registrationData?.userInfo?.firstName &&
+           registrationData?.userInfo?.lastName &&
+           registrationData?.userInfo?.email))
       ) {
-        // Attempt to register the user
-        const registrationResult = await registerForWorkshopViaAI(
-          registrationData.workshopTitle,
-          user?.id || null,
-          registrationData.userInfo
-        );
+        let userInfo = registrationData.userInfo || {};
         
-        // Generate response based on registration result
-        let assistantResponse = registrationResult.success
-          ? `Great! You're now registered for "${registrationData.workshopTitle}". You'll receive a confirmation email shortly with all the details. Is there anything else you'd like help with?`
-          : `I'm sorry, I couldn't complete your registration for "${registrationData.workshopTitle}". ${registrationResult.message} Is there anything else I can assist you with?`;
-        
-        // Reset registration state
-        setRegistrationInProgress(false);
-        setRegistrationData(null);
-        
-        // Add assistant response
-        setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
-        
-        // Save assistant message to chat history if logged in
-        if (user?.id) {
-          await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
+        // For logged-in users, try to get their info from the database if missing
+        if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
+          try {
+            // First check profiles table
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (profile) {
+              userInfo.firstName = userInfo.firstName || profile.first_name || profile.full_name?.split(' ')[0];
+              userInfo.lastName = userInfo.lastName || profile.last_name || profile.full_name?.split(' ')[1];
+              userInfo.email = userInfo.email || profile.email || user.email;
+            } else {
+              // If no profile, try to get from user's email
+              userInfo.email = userInfo.email || user.email;
+              
+              // If still missing firstName/lastName, try to extract from previous registrations
+              const { data: prevRegistration } = await supabase
+                .from('registrations')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+              
+              if (prevRegistration) {
+                userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
+                userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user profile data:', error);
+            // Continue with what we have
+          }
         }
         
-        setIsLoading(false);
-        return;
+        // Check if we have all required info
+        if (userInfo.firstName && userInfo.lastName && userInfo.email) {
+          // Attempt to register the user
+          const registrationResult = await registerForWorkshopViaAI(
+            registrationData.workshopTitle,
+            user?.id || null,
+            userInfo
+          );
+          
+          // Generate response based on registration result
+          let assistantResponse = registrationResult.success
+            ? `Great! You're now registered for "${registrationData.workshopTitle}". You'll receive a confirmation email shortly with all the details. Is there anything else you'd like help with?`
+            : `I'm sorry, I couldn't complete your registration for "${registrationData.workshopTitle}". ${registrationResult.message} Is there anything else I can assist you with?`;
+          
+          // Reset registration state
+          setRegistrationInProgress(false);
+          setRegistrationData(null);
+          
+          // Add assistant response
+          setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+          
+          // Save assistant message to chat history if logged in
+          if (user?.id) {
+            await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
+          }
+          
+          setIsLoading(false);
+          return;
+        }
       }
       
       // Get response from AI with system prompt

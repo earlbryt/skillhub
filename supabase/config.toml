@@ -1,1 +1,5 @@
+
 project_id = "znohucbxvuitqpparsyb"
+
+[functions.send-workshop-confirmation]
+verify_jwt = false
