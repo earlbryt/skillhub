@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { isUserAdmin } from '@/services/userService';
+import UserManagement from './UserManagement';
 import { 
   User, 
   Mail, 
@@ -116,9 +119,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
         
       if (registrationsError) throw registrationsError;
       
-      // For demo purposes, we'll set some default values for admin status
-      // In a real app, this would come from a proper user management system
-      const isAdmin = registration.email.includes('admin') || Math.random() < 0.2;
+      // Check if user is an admin
+      let isAdmin = false;
+      if (registration.user_id) {
+        isAdmin = await isUserAdmin(registration.user_id);
+      }
+      
+      // For demo purposes, we'll set some default values if not available
       const role = isAdmin ? 'admin' : (Math.random() < 0.3 ? 'instructor' : 'user');
       const isActive = Math.random() < 0.9; // 90% of users are active
       
@@ -186,36 +193,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
   
-  // Handle admin status toggle
-  const handleToggleAdmin = async () => {
-    if (!userData) return;
-    
-    try {
-      // In a real app, this would update the user's admin status in the database
-      // For demo purposes, we'll just show a toast
-      toast({
-        title: userData.is_admin ? "Admin Access Removed" : "Admin Access Granted",
-        description: `${userData.first_name} ${userData.last_name} has ${userData.is_admin ? 'lost' : 'been granted'} admin access.`,
-        variant: "default",
-      });
-      
-      // Update local state
-      setUserData(prev => prev ? {
-        ...prev,
-        is_admin: !prev.is_admin
-      } : null);
-      
-      onSuccess();
-    } catch (err: any) {
-      console.error('Error toggling admin status:', err);
-      toast({
-        title: "Error",
-        description: err.message || 'An error occurred while updating admin status.',
-        variant: "destructive",
-      });
-    }
-  };
-  
   // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'MMM d, yyyy');
@@ -232,6 +209,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
     return isActive 
       ? 'bg-green-100 text-green-800 border-green-200' 
       : 'bg-red-100 text-red-800 border-red-200';
+  };
+
+  const handleAdminStatusChange = () => {
+    // Refresh the user data after admin status change
+    fetchUserData();
+    onSuccess();
   };
   
   return (
@@ -359,30 +342,24 @@ const UserProfile: React.FC<UserProfileProps> = ({
                       
                       <div className="flex items-start">
                         <Shield className="h-5 w-5 text-gray-400 mt-0.5 mr-3" />
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-3 w-full">
                           <div>
                             <p className="text-sm font-medium text-gray-700">{userData.is_admin ? 'Yes' : 'No'}</p>
                             <p className="text-xs text-gray-500">Admin Access</p>
                           </div>
                           
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-7 text-xs"
-                            onClick={handleToggleAdmin}
-                          >
-                            {userData.is_admin ? 'Remove' : 'Grant'}
-                          </Button>
+                          {userData.user_id && (
+                            <UserManagement 
+                              userId={userData.user_id}
+                              email={userData.email}
+                              isAdmin={userData.is_admin || false}
+                              onStatusChange={handleAdminStatusChange}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 italic">
-                    Note: In this demo, user status changes are for display only and don't persist between sessions.
-                  </p>
                 </div>
               </TabsContent>
               
@@ -457,4 +434,4 @@ const UserProfile: React.FC<UserProfileProps> = ({
   );
 };
 
-export default UserProfile; 
+export default UserProfile;

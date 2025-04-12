@@ -1,7 +1,9 @@
+
 import React, { useState, createContext, useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import MobileNavigation from '@/components/MobileNavigation';
 import { Search } from 'lucide-react';
 
 // Create a context for search functionality
@@ -49,7 +51,7 @@ const AdminDashboard = () => {
           
           {/* Main content with dynamic offset for sidebar */}
           <div 
-            className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
+            className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out pb-16 md:pb-0"
             style={{ 
               position: 'absolute',
               left: sidebarCollapsed ? '4rem' : '16rem',
@@ -83,6 +85,9 @@ const AdminDashboard = () => {
               <Outlet />
             </main>
           </div>
+          
+          {/* Mobile Navigation */}
+          <MobileNavigation />
         </SidebarProvider>
       </div>
     </SearchContext.Provider>
