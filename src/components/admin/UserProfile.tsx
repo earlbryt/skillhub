@@ -35,6 +35,7 @@ interface UserProfileData {
   role?: string;
   is_admin?: boolean;
   is_active?: boolean;
+  user_id?: string; // Added this property to fix the TypeScript error
   workshops: {
     id: string;
     title: string;
@@ -148,6 +149,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         role: role,
         is_admin: isAdmin,
         is_active: isActive,
+        user_id: registration.user_id, // Ensure user_id is set here
         workshops: workshops
       });
     } catch (err: any) {
