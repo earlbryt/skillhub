@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, ChevronDown, ChevronUp, Loader2, UserIcon } from 'lucide-react';
+import { MessageCircle, Send, X, ChevronDown, ChevronUp, Loader2, UserIcon, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   getChatHistory, 
   saveChatMessage, 
@@ -36,6 +37,7 @@ const EnhancedChatbotAssistant = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let chatSessionId = localStorage.getItem('workshop_chat_session_id');
@@ -118,6 +120,10 @@ const EnhancedChatbotAssistant = () => {
   const minimizeChat = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMinimized(true);
+  };
+
+  const closeChat = () => {
+    setIsOpen(false);
   };
 
   const handleRegisterForWorkshop = async (workshopTitle: string, userInfo: any) => {
@@ -398,7 +404,7 @@ const EnhancedChatbotAssistant = () => {
     <>
       <Button
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 z-50"
+        className={`fixed ${isMobile ? 'bottom-20 right-6' : 'bottom-6 right-6'} rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 z-30`}
         size="icon"
       >
         {isOpen && !isMinimized ? (
@@ -411,17 +417,40 @@ const EnhancedChatbotAssistant = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className={`fixed bottom-28 md:bottom-32 right-6 z-50 w-[90vw] md:w-[400px] rounded-2xl overflow-hidden shadow-2xl border border-border bg-card ${isMinimized ? 'h-auto' : 'h-[65vh] max-h-[550px]'}`}
+            initial={isMobile 
+              ? { opacity: 0, y: '100%' } 
+              : { opacity: 0, x: '100%' }
+            }
+            animate={isMobile 
+              ? { opacity: 1, y: 0 } 
+              : { opacity: 1, x: 0 }
+            }
+            exit={isMobile 
+              ? { opacity: 0, y: '100%' } 
+              : { opacity: 0, x: '100%' }
+            }
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className={`fixed z-40 bg-card border border-border ${
+              isMobile 
+                ? 'inset-0' 
+                : 'top-0 right-0 bottom-0 w-[400px] shadow-xl'
+            } ${isMinimized ? 'h-auto' : ''}`}
           >
             <div 
-              className="bg-primary text-primary-foreground p-4 flex justify-between items-center cursor-pointer"
+              className="bg-primary text-primary-foreground p-4 flex justify-between items-center"
               onClick={() => isMinimized && setIsMinimized(false)}
             >
               <div className="flex items-center space-x-3">
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={closeChat}
+                    className="h-8 w-8 mr-1 text-primary-foreground hover:bg-primary-foreground/10"
+                  >
+                    <ArrowLeft size={18} />
+                  </Button>
+                )}
                 <Avatar className="h-8 w-8 bg-primary-foreground/20">
                   <MessageCircle className="h-5 w-5 text-primary-foreground" />
                 </Avatar>
@@ -438,19 +467,21 @@ const EnhancedChatbotAssistant = () => {
                   </div>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                onClick={minimizeChat}
-              >
-                {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </Button>
+              {!isMobile && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                  onClick={minimizeChat}
+                >
+                  {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
+              )}
             </div>
 
             {!isMinimized && (
               <>
-                <ScrollArea className="flex-1 p-4 h-[calc(65vh-140px)] max-h-[calc(550px-140px)]">
+                <ScrollArea className={`flex-1 p-4 ${isMobile ? 'h-[calc(100vh-140px)]' : 'h-[calc(100vh-140px)]'}`}>
                   <div className="space-y-4">
                     {isInitializing ? (
                       <div className="flex justify-center py-8">

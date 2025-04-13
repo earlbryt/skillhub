@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import MobileNavigation from '@/components/MobileNavigation';
 import { Search } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Create a context for search functionality
 interface SearchContextType {
@@ -23,6 +24,7 @@ const AdminDashboard = () => {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const isMobile = useIsMobile();
   
   // Get the current page title based on the route
   const getPageTitle = () => {
@@ -81,7 +83,7 @@ const AdminDashboard = () => {
             </header>
 
             {/* Dashboard content */}
-            <main className="flex-1 overflow-auto p-6 space-y-6">
+            <main className={`flex-1 overflow-auto p-6 space-y-6 ${isMobile ? 'pb-20' : ''}`}>
               <Outlet />
             </main>
           </div>
