@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -97,7 +96,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             
-            {/* Enhanced Chatbot Assistant */}
+            {/* Only keep the Enhanced Chatbot Assistant */}
             <EnhancedChatbotAssistant />
             
             {/* Add MobileNavigation for regular users */}
