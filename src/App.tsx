@@ -100,7 +100,7 @@ const App = () => (
             {/* Enhanced Chatbot Assistant */}
             <EnhancedChatbotAssistant />
             
-            {/* Add MobileNavigation outside of the routes */}
+            {/* Add MobileNavigation for regular users */}
             <MobileNavigation />
           </AdminProvider>
         </AuthProvider>

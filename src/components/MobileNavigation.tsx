@@ -1,64 +1,93 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, BookOpen, Settings, MessageCircle } from 'lucide-react';
+import { Home, BookOpen, User, LogIn, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MobileNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user, signOut } = useAuth();
   
-  // Don't render on desktop
-  if (!isMobile) return null;
+  // Don't render on desktop or admin routes
+  if (!isMobile || location.pathname.startsWith('/admin')) return null;
   
   const isActive = (path: string) => {
-    if (path === '/admin' && location.pathname === '/admin') {
+    if (path === '/' && location.pathname === '/') {
       return true;
     }
-    return location.pathname.startsWith(path) && path !== '/admin';
+    return location.pathname.startsWith(path) && path !== '/';
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 pb-safe">
       <div className="grid grid-cols-4 h-16">
         <button
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/')}
           className={`flex flex-col items-center justify-center ${
-            isActive('/admin') ? 'text-blue-600' : 'text-gray-500'
+            isActive('/') ? 'text-blue-600' : 'text-gray-500'
           }`}
         >
           <Home size={20} />
-          <span className="text-xs mt-1">Dashboard</span>
+          <span className="text-xs mt-1">Home</span>
         </button>
         
         <button
-          onClick={() => navigate('/admin/workshops')}
+          onClick={() => navigate('/workshops')}
           className={`flex flex-col items-center justify-center ${
-            isActive('/admin/workshops') ? 'text-blue-600' : 'text-gray-500'
+            isActive('/workshops') ? 'text-blue-600' : 'text-gray-500'
           }`}
         >
           <BookOpen size={20} />
           <span className="text-xs mt-1">Workshops</span>
         </button>
         
-        <button
-          onClick={() => navigate('/admin/users')}
-          className={`flex flex-col items-center justify-center ${
-            isActive('/admin/users') ? 'text-blue-600' : 'text-gray-500'
-          }`}
-        >
-          <Users size={20} />
-          <span className="text-xs mt-1">Users</span>
-        </button>
+        {user ? (
+          <button
+            onClick={() => navigate('/profile')}
+            className={`flex flex-col items-center justify-center ${
+              isActive('/profile') ? 'text-blue-600' : 'text-gray-500'
+            }`}
+          >
+            <User size={20} />
+            <span className="text-xs mt-1">Profile</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            className={`flex flex-col items-center justify-center ${
+              isActive('/login') ? 'text-blue-600' : 'text-gray-500'
+            }`}
+          >
+            <LogIn size={20} />
+            <span className="text-xs mt-1">Login</span>
+          </button>
+        )}
         
-        <button
-          onClick={() => navigate('/')}
-          className="flex flex-col items-center justify-center text-gray-500"
-        >
-          <Settings size={20} />
-          <span className="text-xs mt-1">Main Site</span>
-        </button>
+        {user && (
+          <button
+            onClick={() => {
+              signOut();
+              navigate('/');
+            }}
+            className="flex flex-col items-center justify-center text-gray-500"
+          >
+            <LogOut size={20} />
+            <span className="text-xs mt-1">Logout</span>
+          </button>
+        )}
+        
+        {!user && (
+          <button
+            onClick={() => navigate('/signup')}
+            className="flex flex-col items-center justify-center text-gray-500"
+          >
+            <User size={20} />
+            <span className="text-xs mt-1">Sign Up</span>
+          </button>
+        )}
       </div>
     </div>
   );
