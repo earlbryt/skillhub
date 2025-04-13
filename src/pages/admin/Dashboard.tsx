@@ -3,7 +3,6 @@ import React, { useState, createContext, useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import MobileNavigation from '@/components/MobileNavigation';
 import { Search } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -87,9 +86,6 @@ const AdminDashboard = () => {
               <Outlet />
             </main>
           </div>
-          
-          {/* Mobile Navigation */}
-          <MobileNavigation />
         </SidebarProvider>
       </div>
     </SearchContext.Provider>

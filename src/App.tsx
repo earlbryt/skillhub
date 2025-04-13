@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import UserProfile from "./pages/UserProfile";
 import EnhancedChatbotAssistant from "./components/EnhancedChatbotAssistant";
+import MobileNavigation from "./components/MobileNavigation";
 
 // Admin imports
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -98,6 +99,9 @@ const App = () => (
             
             {/* Enhanced Chatbot Assistant */}
             <EnhancedChatbotAssistant />
+            
+            {/* Add MobileNavigation outside of the routes */}
+            <MobileNavigation />
           </AdminProvider>
         </AuthProvider>
       </BrowserRouter>
