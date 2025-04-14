@@ -43,6 +43,10 @@ const EnhancedChatbotAssistant = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
     let chatSessionId = localStorage.getItem('workshop_chat_session_id');
     if (!chatSessionId) {
       chatSessionId = uuidv4();
@@ -468,16 +472,28 @@ const EnhancedChatbotAssistant = () => {
                   </div>
                 </div>
               </div>
-              {!isMobile && (
+              
+              <div className="flex items-center">
+                {!isMobile && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 mr-1"
+                    onClick={minimizeChat}
+                  >
+                    {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  </Button>
+                )}
+                
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8 rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={minimizeChat}
+                  onClick={closeChat}
                 >
-                  {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  <X className="h-5 w-5" />
                 </Button>
-              )}
+              </div>
             </div>
 
             {!isMinimized && (

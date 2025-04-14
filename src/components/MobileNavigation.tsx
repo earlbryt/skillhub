@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, BookOpen, User, LogIn, LogOut } from 'lucide-react';
+import { Home, BookOpen, User, LogIn } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -23,7 +23,8 @@ const MobileNavigation: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 pb-safe">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-3 h-16">
+        {/* Home button */}
         <button
           onClick={() => navigate('/')}
           className={`flex flex-col items-center justify-center ${
@@ -34,6 +35,7 @@ const MobileNavigation: React.FC = () => {
           <span className="text-xs mt-1">Home</span>
         </button>
         
+        {/* Workshops button */}
         <button
           onClick={() => navigate('/workshops')}
           className={`flex flex-col items-center justify-center ${
@@ -44,6 +46,7 @@ const MobileNavigation: React.FC = () => {
           <span className="text-xs mt-1">Workshops</span>
         </button>
         
+        {/* Profile/Login button */}
         {user ? (
           <button
             onClick={() => navigate('/profile')}
@@ -63,29 +66,6 @@ const MobileNavigation: React.FC = () => {
           >
             <LogIn size={20} />
             <span className="text-xs mt-1">Login</span>
-          </button>
-        )}
-        
-        {user && (
-          <button
-            onClick={() => {
-              signOut();
-              navigate('/');
-            }}
-            className="flex flex-col items-center justify-center text-gray-500"
-          >
-            <LogOut size={20} />
-            <span className="text-xs mt-1">Logout</span>
-          </button>
-        )}
-        
-        {!user && (
-          <button
-            onClick={() => navigate('/signup')}
-            className="flex flex-col items-center justify-center text-gray-500"
-          >
-            <User size={20} />
-            <span className="text-xs mt-1">Sign Up</span>
           </button>
         )}
       </div>

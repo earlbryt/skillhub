@@ -351,7 +351,7 @@ const Index = () => {
       </main>
       
       <Footer />
-      {/* Remove the old ChatbotAssistant component */}
+      {/* Old ChatbotAssistant component has been removed */}
     </div>
   );
 };
