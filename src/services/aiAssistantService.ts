@@ -310,6 +310,80 @@ export const registerForWorkshopViaAI = async (
   }
 };
 
+export const deregisterFromWorkshopViaAI = async (
+  workshopTitle: string,
+  userId: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    if (!userId) {
+      return { 
+        success: false, 
+        message: 'You need to be logged in to deregister from a workshop.' 
+      };
+    }
+    
+    // Find workshop by title
+    const { data: workshops, error: workshopError } = await supabase
+      .from('workshops')
+      .select('*')
+      .ilike('title', `%${workshopTitle}%`)
+      .limit(1);
+
+    if (workshopError) {
+      console.error('Error finding workshop:', workshopError);
+      return { success: false, message: 'Error finding the workshop.' };
+    }
+
+    if (!workshops || workshops.length === 0) {
+      return { 
+        success: false, 
+        message: 'Workshop not found. Please check the workshop title and try again.' 
+      };
+    }
+
+    const workshop = workshops[0];
+    
+    // Check if user is registered for this workshop
+    const { data: registrations, error: registrationCheckError } = await supabase
+      .from('registrations')
+      .select('*')
+      .eq('workshop_id', workshop.id)
+      .eq('user_id', userId);
+
+    if (registrationCheckError) {
+      console.error('Error checking registrations:', registrationCheckError);
+      return { success: false, message: 'Error checking your workshop registrations.' };
+    }
+
+    if (!registrations || registrations.length === 0) {
+      return { 
+        success: false, 
+        message: `You are not registered for the "${workshop.title}" workshop.` 
+      };
+    }
+
+    // Deregister user from workshop
+    const { error: deregisterError } = await supabase
+      .from('registrations')
+      .delete()
+      .eq('workshop_id', workshop.id)
+      .eq('user_id', userId);
+
+    if (deregisterError) {
+      console.error('Error deregistering from workshop:', deregisterError);
+      return { success: false, message: 'Error deregistering from the workshop.' };
+    }
+
+    return { 
+      success: true, 
+      message: `You have been successfully deregistered from the "${workshop.title}" workshop.` 
+    };
+  } catch (error) {
+    console.error('Error in deregisterFromWorkshopViaAI:', error);
+    return { success: false, message: 'An unexpected error occurred: ' + (error as Error).message };
+  }
+};
+
 export const getChatHistory = async (userId: string | null, sessionId: string): Promise<{role: 'user' | 'assistant' | 'system', content: string}[]> => {
   if (!userId) return [];
 
@@ -436,6 +510,7 @@ export const extractRegistrationIntent = (
   messages: {role: string, content: string}[]
 ): {
   intent: boolean;
+  deregister?: boolean;
   workshopTitle?: string;
   userInfo?: {
     firstName?: string;
@@ -449,48 +524,72 @@ export const extractRegistrationIntent = (
     .map(msg => msg.content.toLowerCase());
   
   const registrationPhrases = ['register', 'sign up', 'join', 'enroll'];
+  const deregistrationPhrases = ['deregister', 'unregister', 'cancel', 'remove me from'];
+  
   const hasRegistrationIntent = userMessages.some(msg => 
     registrationPhrases.some(phrase => msg.includes(phrase))
   );
   
-  if (!hasRegistrationIntent) {
+  const hasDeregistrationIntent = userMessages.some(msg => 
+    deregistrationPhrases.some(phrase => msg.includes(phrase))
+  );
+  
+  if (!hasRegistrationIntent && !hasDeregistrationIntent) {
     return { intent: false };
   }
   
   let workshopTitle;
   for (const msg of userMessages) {
-    const forIndex = msg.indexOf(' for ');
-    const toIndex = msg.indexOf(' to the ');
+    if (hasRegistrationIntent) {
+      const forIndex = msg.indexOf(' for ');
+      const toIndex = msg.indexOf(' to the ');
+      
+      if (forIndex > -1) {
+        workshopTitle = msg.substring(forIndex + 5).split(/[.,!?]/)[0].trim();
+        break;
+      } else if (toIndex > -1) {
+        workshopTitle = msg.substring(toIndex + 8).split(/[.,!?]/)[0].trim();
+        break;
+      }
+    }
     
-    if (forIndex > -1) {
-      workshopTitle = msg.substring(forIndex + 5).split(/[.,!?]/)[0].trim();
-      break;
-    } else if (toIndex > -1) {
-      workshopTitle = msg.substring(toIndex + 8).split(/[.,!?]/)[0].trim();
-      break;
+    if (hasDeregistrationIntent) {
+      const fromIndex = msg.indexOf(' from ');
+      const cancelIndex = msg.indexOf(' cancel ');
+      
+      if (fromIndex > -1) {
+        workshopTitle = msg.substring(fromIndex + 6).split(/[.,!?]/)[0].trim();
+        break;
+      } else if (cancelIndex > -1) {
+        workshopTitle = msg.substring(cancelIndex + 8).split(/[.,!?]/)[0].trim();
+        break;
+      }
     }
   }
   
   const userInfo: any = {};
   
-  for (const msg of userMessages) {
-    if (msg.includes('name is')) {
-      const nameparts = msg.split('name is')[1].trim().split(' ');
-      if (nameparts.length > 0) userInfo.firstName = nameparts[0];
-      if (nameparts.length > 1) userInfo.lastName = nameparts[1];
-    }
-    
-    if (msg.includes('email is') || msg.includes('email:')) {
-      const emailPart = msg.includes('email is') 
-        ? msg.split('email is')[1]
-        : msg.split('email:')[1];
-      const emailMatch = emailPart?.match(/\S+@\S+\.\S+/);
-      if (emailMatch) userInfo.email = emailMatch[0];
+  if (hasRegistrationIntent && !hasDeregistrationIntent) {
+    for (const msg of userMessages) {
+      if (msg.includes('name is')) {
+        const nameparts = msg.split('name is')[1].trim().split(' ');
+        if (nameparts.length > 0) userInfo.firstName = nameparts[0];
+        if (nameparts.length > 1) userInfo.lastName = nameparts[1];
+      }
+      
+      if (msg.includes('email is') || msg.includes('email:')) {
+        const emailPart = msg.includes('email is') 
+          ? msg.split('email is')[1]
+          : msg.split('email:')[1];
+        const emailMatch = emailPart?.match(/\S+@\S+\.\S+/);
+        if (emailMatch) userInfo.email = emailMatch[0];
+      }
     }
   }
   
   return {
     intent: true,
+    deregister: hasDeregistrationIntent,
     workshopTitle,
     userInfo: Object.keys(userInfo).length ? userInfo : undefined
   };

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { Workshop, Registration } from '@/types/supabase';
 
@@ -298,4 +297,24 @@ export const checkUserRegisteredForWorkshop = async (workshopId: string, userId:
   }
   
   return (count || 0) > 0;
+};
+
+export const deregisterFromWorkshop = async (workshopId: string, userId: string): Promise<{ success: boolean, error?: any }> => {
+  try {
+    const { error } = await supabase
+      .from('registrations')
+      .delete()
+      .eq('workshop_id', workshopId)
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error(`Error deregistering from workshop with ID ${workshopId}:`, error);
+      return { success: false, error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error deregistering from workshop:', error);
+    return { success: false, error };
+  }
 };

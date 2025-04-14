@@ -19,7 +19,8 @@ import {
   generateSystemPromptWithRealTimeData,
   extractRegistrationIntent,
   registerForWorkshopViaAI,
-  isUserRegisteredForWorkshop
+  isUserRegisteredForWorkshop,
+  deregisterFromWorkshopViaAI
 } from '@/services/aiAssistantService';
 
 const EnhancedChatbotAssistant = () => {
@@ -34,6 +35,7 @@ const EnhancedChatbotAssistant = () => {
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
   const [registrationData, setRegistrationData] = useState<any>(null);
   const [processingRegistration, setProcessingRegistration] = useState(false);
+  const [deregistrationInProgress, setDeregistrationInProgress] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +202,33 @@ const EnhancedChatbotAssistant = () => {
     }
   };
 
+  const handleDeregisterFromWorkshop = async (workshopTitle: string) => {
+    console.log("Attempting to deregister from workshop:", workshopTitle);
+    
+    if (!user?.id) {
+      return {
+        success: false,
+        message: "You need to be logged in to deregister from a workshop."
+      };
+    }
+    
+    try {
+      const result = await deregisterFromWorkshopViaAI(
+        workshopTitle,
+        user.id
+      );
+      
+      console.log("Deregistration result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error in deregistration process:", error);
+      return {
+        success: false,
+        message: `Deregistration failed: ${(error as Error).message}`
+      };
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -341,13 +370,50 @@ const EnhancedChatbotAssistant = () => {
         }
       }
       
-      if (!registrationInProgress) {
+      // Handle deregistration
+      if (deregistrationInProgress) {
+        if (user?.id && registrationData?.workshopTitle) {
+          const deregistrationResult = await handleDeregisterFromWorkshop(
+            registrationData.workshopTitle
+          );
+          
+          let assistantResponse = '';
+          
+          if (deregistrationResult.success) {
+            assistantResponse = `${deregistrationResult.message} Is there anything else you'd like help with?`;
+          } else {
+            assistantResponse = `I'm sorry, I couldn't deregister you. ${deregistrationResult.message}`;
+          }
+          
+          setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+          
+          if (user?.id) {
+            await saveChatMessage(user.id, sessionId, 'assistant', assistantResponse);
+          }
+          
+          setIsLoading(false);
+          setDeregistrationInProgress(false);
+          setRegistrationData(null);
+          return;
+        }
+      }
+      
+      if (!registrationInProgress && !deregistrationInProgress) {
         const intentData = extractRegistrationIntent([...messages, userMessage]);
         
         if (intentData.intent) {
-          console.log("Registration intent detected:", intentData);
+          console.log("Registration/Deregistration intent detected:", intentData);
           
-          if (intentData.workshopTitle) {
+          if (intentData.deregister) {
+            // Handle deregistration intent
+            if (intentData.workshopTitle && user?.id) {
+              setDeregistrationInProgress(true);
+              setRegistrationData({
+                workshopTitle: intentData.workshopTitle
+              });
+            }
+          } else if (intentData.workshopTitle) {
+            // Handle registration intent
             if (user?.id) {
               const alreadyRegistered = await isUserRegisteredForWorkshop(
                 user.id, 
