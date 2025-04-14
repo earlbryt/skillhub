@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import Footer from '@/components/Footer';
 import WorkshopCard from '@/components/WorkshopCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import CountdownTimer from '@/components/CountdownTimer';
-import ChatbotAssistant from '@/components/ChatbotAssistant';
 import HeroSection from '@/components/HeroSection';
 import { getWorkshops } from '@/services/workshopService';
 import { format } from 'date-fns';
@@ -351,7 +351,7 @@ const Index = () => {
       </main>
       
       <Footer />
-      <ChatbotAssistant />
+      {/* Remove the old ChatbotAssistant component */}
     </div>
   );
 };

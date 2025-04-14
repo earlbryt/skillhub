@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   getChatHistory, 
   saveChatMessage, 
@@ -38,6 +39,8 @@ const EnhancedChatbotAssistant = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let chatSessionId = localStorage.getItem('workshop_chat_session_id');
@@ -126,11 +129,16 @@ const EnhancedChatbotAssistant = () => {
     setIsOpen(false);
   };
 
+  const goBack = () => {
+    if (isMobile) {
+      closeChat();
+    }
+  };
+
   const handleRegisterForWorkshop = async (workshopTitle: string, userInfo: any) => {
     console.log("Attempting to register for workshop:", workshopTitle);
     console.log("User info:", userInfo);
     
-    // Check if already registered (if logged in)
     if (user?.id) {
       try {
         const alreadyRegistered = await isUserRegisteredForWorkshop(
@@ -151,7 +159,6 @@ const EnhancedChatbotAssistant = () => {
     }
     
     try {
-      // Make sure we have complete user info
       if (userInfo && userInfo.firstName && userInfo.lastName && userInfo.email) {
         const result = await registerForWorkshopViaAI(
           workshopTitle,
@@ -236,13 +243,10 @@ const EnhancedChatbotAssistant = () => {
           
           setRegistrationData(updatedRegData);
           
-          // Try to get user info from Supabase if logged in
-          let userInfo = updatedRegData.userInfo || {};
-          
-          if (user?.id && (!userInfo.firstName || !userInfo.lastName || !userInfo.email)) {
+          if (user?.id && (!updatedRegData.userInfo.firstName || !updatedRegData.userInfo.lastName || !updatedRegData.userInfo.email)) {
             try {
               const { data: userData } = await supabase.auth.getUser();
-              userInfo.email = userInfo.email || userData?.user?.email;
+              updatedRegData.userInfo.email = updatedRegData.userInfo.email || userData?.user?.email;
               
               const { data: prevRegistration } = await supabase
                 .from('registrations')
@@ -253,32 +257,29 @@ const EnhancedChatbotAssistant = () => {
                 .maybeSingle();
               
               if (prevRegistration) {
-                userInfo.firstName = userInfo.firstName || prevRegistration.first_name;
-                userInfo.lastName = userInfo.lastName || prevRegistration.last_name;
-                userInfo.email = userInfo.email || prevRegistration.email;
+                updatedRegData.userInfo.firstName = updatedRegData.userInfo.firstName || prevRegistration.first_name;
+                updatedRegData.userInfo.lastName = updatedRegData.userInfo.lastName || prevRegistration.last_name;
+                updatedRegData.userInfo.email = updatedRegData.userInfo.email || prevRegistration.email;
               }
             } catch (error) {
               console.error('Error fetching user profile data:', error);
             }
           }
           
-          // If we have enough information, attempt to register
           if (updatedRegData.workshopTitle && 
-             ((userInfo.firstName && userInfo.lastName && userInfo.email) || 
-              (user?.id && userInfo.email))) {
+             ((updatedRegData.userInfo.firstName && updatedRegData.userInfo.lastName && updatedRegData.userInfo.email) || 
+              (user?.id && updatedRegData.userInfo.email))) {
             
-            // Ensure we have all required fields
-            if (!userInfo.firstName || !userInfo.lastName) {
+            if (!updatedRegData.userInfo.firstName || !updatedRegData.userInfo.lastName) {
               if (user?.id) {
-                // Try to get name from email if nothing else
-                if (!userInfo.firstName && !userInfo.lastName && userInfo.email) {
-                  const emailParts = userInfo.email.split('@')[0].split('.');
+                if (!updatedRegData.userInfo.firstName && !updatedRegData.userInfo.lastName && updatedRegData.userInfo.email) {
+                  const emailParts = updatedRegData.userInfo.email.split('@')[0].split('.');
                   if (emailParts.length >= 2) {
-                    userInfo.firstName = userInfo.firstName || emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1);
-                    userInfo.lastName = userInfo.lastName || emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1);
+                    updatedRegData.userInfo.firstName = updatedRegData.userInfo.firstName || emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1);
+                    updatedRegData.userInfo.lastName = updatedRegData.userInfo.lastName || emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1);
                   } else if (emailParts.length === 1) {
-                    userInfo.firstName = userInfo.firstName || emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1);
-                    userInfo.lastName = userInfo.lastName || "User";
+                    updatedRegData.userInfo.firstName = updatedRegData.userInfo.firstName || emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1);
+                    updatedRegData.userInfo.lastName = updatedRegData.userInfo.lastName || "User";
                   }
                 }
               }
@@ -286,7 +287,7 @@ const EnhancedChatbotAssistant = () => {
             
             const registrationResult = await handleRegisterForWorkshop(
               updatedRegData.workshopTitle,
-              userInfo
+              updatedRegData.userInfo
             );
             
             let assistantResponse = '';
@@ -300,12 +301,10 @@ const EnhancedChatbotAssistant = () => {
               setRegistrationInProgress(false);
               setRegistrationData(null);
             } else {
-              // If registration failed but we have enough info to try again
-              if (userInfo.firstName && userInfo.lastName && userInfo.email) {
+              if (updatedRegData.userInfo.firstName && updatedRegData.userInfo.lastName && updatedRegData.userInfo.email) {
                 assistantResponse = `I'm sorry, I couldn't complete your registration for "${updatedRegData.workshopTitle}". ${registrationResult.message} Would you like to try again?`;
               } else {
-                // We need more information
-                assistantResponse = `I need a bit more information to register you for "${updatedRegData.workshopTitle}". Could you please provide your ${!userInfo.firstName ? 'first name' : ''}${!userInfo.firstName && !userInfo.lastName ? ' and ' : ''}${!userInfo.lastName ? 'last name' : ''}${(!userInfo.firstName || !userInfo.lastName) && !userInfo.email ? ' and ' : ''}${!userInfo.email ? 'email address' : ''}?`;
+                assistantResponse = `I need a bit more information to register you for "${updatedRegData.workshopTitle}". Could you please provide your ${!updatedRegData.userInfo.firstName ? 'first name' : ''}${!updatedRegData.userInfo.firstName && !updatedRegData.userInfo.lastName ? ' and ' : ''}${!updatedRegData.userInfo.lastName ? 'last name' : ''}${(!updatedRegData.userInfo.firstName || !updatedRegData.userInfo.lastName) && !updatedRegData.userInfo.email ? ' and ' : ''}${!updatedRegData.userInfo.email ? 'email address' : ''}?`;
               }
             }
             
@@ -400,6 +399,8 @@ const EnhancedChatbotAssistant = () => {
     return urlFormatted.replace(/\n/g, '<br>');
   };
 
+  if (location.pathname.startsWith('/admin')) return null;
+
   return (
     <>
       <Button
@@ -445,7 +446,7 @@ const EnhancedChatbotAssistant = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={closeChat}
+                    onClick={goBack}
                     className="h-8 w-8 mr-1 text-primary-foreground hover:bg-primary-foreground/10"
                   >
                     <ArrowLeft size={18} />
