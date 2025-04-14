@@ -498,7 +498,7 @@ const EnhancedChatbotAssistant = () => {
 
             {!isMinimized && (
               <>
-                <ScrollArea className={`flex-1 p-4 ${isMobile ? 'h-[calc(100vh-140px)]' : 'h-[calc(100vh-140px)]'}`}>
+                <ScrollArea className={`flex-1 p-4 ${isMobile ? 'h-[calc(100vh-180px)]' : 'h-[calc(100vh-140px)]'}`}>
                   <div className="space-y-4">
                     {isInitializing ? (
                       <div className="flex justify-center py-8">
@@ -574,6 +574,18 @@ const EnhancedChatbotAssistant = () => {
                     </div>
                   )}
                 </form>
+
+                {isMobile && (
+                  <div className="fixed bottom-0 left-0 right-0 text-center pb-20 pt-2 bg-background border-t">
+                    <Button
+                      variant="ghost"
+                      onClick={closeChat}
+                      className="text-primary hover:text-primary/90"
+                    >
+                      Close Chat
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </motion.div>
