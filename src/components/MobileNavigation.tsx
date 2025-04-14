@@ -11,8 +11,12 @@ const MobileNavigation: React.FC = () => {
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
   
-  // Don't render on desktop or admin routes
-  if (!isMobile || location.pathname.startsWith('/admin')) return null;
+  // Don't render on desktop, admin routes, or when chat is open
+  if (!isMobile || 
+      location.pathname.startsWith('/admin') || 
+      document.body.classList.contains('chat-open')) {
+    return null;
+  }
   
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') {

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, ChevronDown, ChevronUp, Loader2, UserIcon, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,19 @@ const EnhancedChatbotAssistant = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Add a class to the body when the chat is open to hide the mobile navigation
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      document.body.classList.add('chat-open');
+    } else {
+      document.body.classList.remove('chat-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('chat-open');
+    };
+  }, [isOpen, isMinimized]);
 
   useEffect(() => {
     setIsOpen(false);
@@ -134,9 +148,7 @@ const EnhancedChatbotAssistant = () => {
   };
 
   const goBack = () => {
-    if (isMobile) {
-      closeChat();
-    }
+    closeChat();
   };
 
   const handleRegisterForWorkshop = async (workshopTitle: string, userInfo: any) => {
@@ -446,16 +458,16 @@ const EnhancedChatbotAssistant = () => {
               onClick={() => isMinimized && setIsMinimized(false)}
             >
               <div className="flex items-center space-x-3">
-                {isMobile && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={goBack}
-                    className="h-8 w-8 mr-1 text-primary-foreground hover:bg-primary-foreground/10"
-                  >
-                    <ArrowLeft size={18} />
-                  </Button>
-                )}
+                {/* Changed to visible on both mobile and desktop */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goBack}
+                  className="h-8 w-8 mr-1 text-primary-foreground hover:bg-primary-foreground/10"
+                  aria-label="Close chat"
+                >
+                  <ArrowLeft size={18} />
+                </Button>
                 <Avatar className="h-8 w-8 bg-primary-foreground/20">
                   <MessageCircle className="h-5 w-5 text-primary-foreground" />
                 </Avatar>
@@ -498,7 +510,7 @@ const EnhancedChatbotAssistant = () => {
 
             {!isMinimized && (
               <>
-                <ScrollArea className={`flex-1 p-4 ${isMobile ? 'h-[calc(100vh-180px)]' : 'h-[calc(100vh-140px)]'}`}>
+                <ScrollArea className={`flex-1 p-4 ${isMobile ? 'h-[calc(100vh-120px)]' : 'h-[calc(100vh-140px)]'}`}>
                   <div className="space-y-4">
                     {isInitializing ? (
                       <div className="flex justify-center py-8">
@@ -574,18 +586,6 @@ const EnhancedChatbotAssistant = () => {
                     </div>
                   )}
                 </form>
-
-                {isMobile && (
-                  <div className="fixed bottom-0 left-0 right-0 text-center pb-20 pt-2 bg-background border-t">
-                    <Button
-                      variant="ghost"
-                      onClick={closeChat}
-                      className="text-primary hover:text-primary/90"
-                    >
-                      Close Chat
-                    </Button>
-                  </div>
-                )}
               </>
             )}
           </motion.div>
