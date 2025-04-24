@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -194,12 +193,12 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
         'location', 'capacity', 'price', 'instructor', 'image_url'
       ];
       
-      const cleanedData: Partial<Workshop> = {};
+      const cleanedData: Record<string, any> = {};
       
       // Only include valid fields that exist in our database schema
       validFields.forEach(field => {
         if (formData[field as keyof Partial<Workshop>] !== undefined) {
-          cleanedData[field as keyof Partial<Workshop>] = formData[field as keyof Partial<Workshop>];
+          cleanedData[field] = formData[field as keyof Partial<Workshop>];
         }
       });
       

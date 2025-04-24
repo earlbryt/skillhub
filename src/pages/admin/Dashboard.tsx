@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { createContext, useContext, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,7 +10,33 @@ import {
   Users,
   MessageSquare,
   HelpCircle,
+  Search,
 } from 'lucide-react';
+
+// Create a context for search functionality
+interface SearchContextType {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
+
+const SearchContext = createContext<SearchContextType>({
+  searchQuery: '',
+  setSearchQuery: () => {},
+});
+
+// Custom hook to use the search context
+export const useSearch = () => useContext(SearchContext);
+
+// Create a provider component
+export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  return (
+    <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
+      {children}
+    </SearchContext.Provider>
+  );
+};
 
 const Dashboard = () => {
   return (
