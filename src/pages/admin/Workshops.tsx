@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,14 +8,12 @@ import {
   Users,
   Clock,
   MapPin,
-  ChevronLeft,
-  ChevronRight,
   Calendar,
   Tag,
   DollarSign,
   Bookmark,
   Edit,
-  MoreHorizontal
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -24,12 +23,6 @@ import { Workshop } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useSearch } from './Dashboard';
 import WorkshopForm from '@/components/admin/WorkshopForm';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type WorkshopWithRegistrations = Workshop & {
   registrations_count: number;
@@ -48,66 +41,65 @@ const AdminWorkshops = () => {
   // Workshop form state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | undefined>(undefined);
-  
-    const fetchWorkshops = async () => {
-      try {
-        setLoading(true);
+
+  const fetchWorkshops = async () => {
+    try {
+      setLoading(true);
+      
+      const { data: workshopsData, error } = await supabase
+        .from('workshops')
+        .select('*')
+        .order(sortField, { ascending: sortDirection === 'asc' });
         
-        const { data: workshopsData, error } = await supabase
-          .from('workshops')
-          .select('*')
-          .order(sortField, { ascending: sortDirection === 'asc' });
+      if (error) throw error;
+      
+      // Get registration counts for each workshop
+      const workshopsWithRegistrations = await Promise.all(
+        (workshopsData || []).map(async (workshop) => {
+          const { count, error: countError } = await supabase
+            .from('registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('workshop_id', workshop.id);
+            
+          if (countError) {
+            console.error('Error fetching registration count:', countError);
+            return { ...workshop, registrations_count: 0 };
+          }
           
-        if (error) throw error;
-        
-        // Get registration counts for each workshop
-        const workshopsWithRegistrations = await Promise.all(
-          (workshopsData || []).map(async (workshop) => {
-            const { count, error: countError } = await supabase
-              .from('registrations')
-              .select('*', { count: 'exact', head: true })
-              .eq('workshop_id', workshop.id);
-              
-            if (countError) {
-              console.error('Error fetching registration count:', countError);
-              return { ...workshop, registrations_count: 0 };
-            }
-            
-            // Determine status based on dates and capacity
-            const now = new Date();
-            const startDate = new Date(workshop.start_date);
-            const endDate = new Date(workshop.end_date);
-            
-            let status = '';
-            if (now > endDate) {
-              status = 'completed';
-            } else if (now >= startDate && now <= endDate) {
-              status = 'active';
-            } else {
-              status = 'upcoming';
-            }
-            
-            // Add status and count to workshop object
-            return { 
-              ...workshop, 
-              registrations_count: count || 0,
-              registration_status: status
-            };
-          })
-        );
-        
-        setWorkshops(workshopsWithRegistrations);
-      } catch (error) {
-        console.error('Error fetching workshops:', error);
-        toast({
-          title: "Error fetching workshops",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+          // Determine status based on dates and capacity
+          const now = new Date();
+          const startDate = new Date(workshop.start_date);
+          const endDate = new Date(workshop.end_date);
+          
+          let status = '';
+          if (now > endDate) {
+            status = 'completed';
+          } else if (now >= startDate && now <= endDate) {
+            status = 'active';
+          } else {
+            status = 'upcoming';
+          }
+          
+          return { 
+            ...workshop, 
+            registrations_count: count || 0,
+            registration_status: status
+          };
+        })
+      );
+      
+      setWorkshops(workshopsWithRegistrations);
+    } catch (error) {
+      console.error('Error fetching workshops:', error);
+      toast({
+        title: "Error fetching workshops",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
     
   useEffect(() => {
     fetchWorkshops();
@@ -127,6 +119,43 @@ const AdminWorkshops = () => {
       workshop.registration_status?.toLowerCase().includes(query)
     );
   });
+
+  // Handle editing workshop
+  const handleEditWorkshop = (workshop: Workshop) => {
+    setSelectedWorkshop(workshop);
+    setIsFormOpen(true);
+  };
+
+  // Handle deleting workshop
+  const handleDeleteWorkshop = async (workshopId: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this workshop?');
+    
+    if (confirmed) {
+      try {
+        const { error } = await supabase
+          .from('workshops')
+          .delete()
+          .eq('id', workshopId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Workshop deleted",
+          description: "The workshop has been successfully deleted.",
+        });
+
+        // Refresh workshops list
+        fetchWorkshops();
+      } catch (error) {
+        console.error('Error deleting workshop:', error);
+        toast({
+          title: "Error deleting workshop",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
   
   // Format date
   const formatDate = (dateString: string) => {
@@ -158,12 +187,6 @@ const AdminWorkshops = () => {
     setIsFormOpen(true);
   };
   
-  // Handle opening the form for editing an existing workshop
-  const handleEditWorkshop = (workshop: Workshop) => {
-    setSelectedWorkshop(workshop);
-    setIsFormOpen(true);
-  };
-  
   // Handle form close
   const handleFormClose = () => {
     setIsFormOpen(false);
@@ -180,7 +203,7 @@ const AdminWorkshops = () => {
       {/* Workshops Header */}
       <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
         <div className="flex justify-between items-center">
-        <div>
+          <div>
             <h2 className="text-xl font-bold text-gray-900">Workshops</h2>
             <p className="text-sm text-gray-500 mt-1">
               {searchQuery 
@@ -188,19 +211,19 @@ const AdminWorkshops = () => {
                 : `Total ${workshops.length} workshops available`
               }
             </p>
-        </div>
+          </div>
           <Button 
             className="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center gap-2 shadow-sm hover:bg-blue-600"
             onClick={handleAddWorkshop}
           >
-          <Plus size={16} /> 
-          Add Workshop
-        </Button>
+            <Plus size={16} /> 
+            Add Workshop
+          </Button>
         </div>
       </div>
       
       {/* Workshops cards */}
-              {loading ? (
+      {loading ? (
         <div className="flex justify-center items-center py-12 bg-white rounded-lg shadow-md border border-gray-200">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-600">Loading workshops...</span>
@@ -209,7 +232,7 @@ const AdminWorkshops = () => {
         <div className="grid grid-cols-1 gap-4">
           {filteredWorkshops.map((workshop) => (
             <Card key={workshop.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200 bg-white border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
@@ -221,12 +244,6 @@ const AdminWorkshops = () => {
                         <span className="ml-2 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center shadow-sm">
                           <DollarSign className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
                           GH₵{workshop.price.toFixed(2)}
-                        </span>
-                      )}
-                      {workshop.category && (
-                        <span className="ml-2 px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-800 flex items-center shadow-sm">
-                          <Tag className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
-                          {workshop.category}
                         </span>
                       )}
                     </div>
@@ -252,12 +269,6 @@ const AdminWorkshops = () => {
                           }`} />
                           {workshop.registrations_count} / {workshop.capacity}
                         </div>
-                        <div className="text-xs text-gray-500">of {workshop.capacity}</div>
-                        {workshop.registrations_count >= workshop.capacity && (
-                          <div className="text-xs font-medium text-red-600 mt-0.5">
-                            Workshop is full
-                          </div>
-                        )}
                       </div>
                       
                       <div className="flex flex-col">
@@ -298,36 +309,30 @@ const AdminWorkshops = () => {
                     className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm"
                   >
                     <Edit className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
-                    <span>Edit</span>
+                    Edit
                   </Button>
                   
-                  <Button variant="outline" size="sm" asChild className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild 
+                    className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm"
+                  >
                     <Link to={`/admin/workshops/${workshop.id}/attendees`}>
                       <Eye className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
-                      <span>Attendees</span>
-                        </Link>
+                      Attendees
+                    </Link>
                   </Button>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-200 bg-white shadow-sm">
-                        <MoreHorizontal className="h-3.5 w-3.5 text-gray-500" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Link to={`/workshops/${workshop.id}`} className="flex items-center w-full">
-                          View Public Page
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        Export Attendees
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        Delete Workshop
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDeleteWorkshop(workshop.id)}
+                    className="h-8 text-xs border-red-200 bg-white text-red-600 hover:text-red-700 hover:border-red-300 shadow-sm"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-red-500 mr-1.5" />
+                    Delete
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -341,23 +346,6 @@ const AdminWorkshops = () => {
           }
         </div>
       )}
-        
-        {/* Pagination */}
-        {filteredWorkshops.length > 0 && (
-        <div className="flex justify-between items-center p-6 bg-white rounded-lg shadow-md text-sm border border-gray-200">
-          <p className="text-gray-600">Page 1 of 1</p>
-            <div className="flex gap-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white flex items-center gap-1 text-gray-500 shadow-sm" disabled>
-                <ChevronLeft size={14} />
-                <span>Previous</span>
-              </button>
-            <button className="px-3 py-1 border border-transparent rounded-md bg-blue-500 text-white flex items-center gap-1 shadow-sm" disabled>
-                <span>Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        )}
       
       {/* Workshop Form Dialog */}
       {isFormOpen && (
