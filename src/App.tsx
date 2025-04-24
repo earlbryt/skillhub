@@ -1,12 +1,12 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { Home } from './pages/Home';
-import { Workshops } from './pages/Workshops';
-import { WorkshopDetails } from './pages/WorkshopDetails';
-import { UserProfile } from './pages/UserProfile';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { NotFound } from './pages/NotFound';
+import Home from './pages/Home';
+import Workshops from './pages/Workshops';
+import WorkshopDetails from './pages/WorkshopDetails';
+import UserProfile from './pages/UserProfile';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import NotFound from './pages/NotFound';
 import AdminSidebar from './components/admin/AdminSidebar';
 import Dashboard from './pages/admin/Dashboard';
 import AdminWorkshops from './pages/admin/Workshops';
