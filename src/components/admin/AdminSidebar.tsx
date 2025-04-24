@@ -1,5 +1,6 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+
+import React, { ReactNode } from 'react';
+import { NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarContent,
@@ -22,9 +23,10 @@ interface AdminSidebarProps {
   sidebarCollapsed: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  children?: ReactNode;
 }
 
-const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSidebarProps) => {
+const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave, children }: AdminSidebarProps) => {
   const navigate = useNavigate();
   
   const navItems = [
@@ -42,69 +44,76 @@ const AdminSidebar = ({ sidebarCollapsed, onMouseEnter, onMouseLeave }: AdminSid
   };
 
   return (
-    <Sidebar 
-      className="fixed h-full z-10 bg-gradient-to-b from-blue-600 to-blue-800 transition-all duration-300 ease-in-out flex flex-col hide-scrollbar"
-      style={{ width: sidebarCollapsed ? '4rem' : '16rem' }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      <SidebarContent className="flex-1 overflow-hidden hover:overflow-y-auto hide-scrollbar">
-        <SidebarGroup>
-          <div className="flex items-center justify-between p-4 border-b border-blue-500/30">
-            <div className="flex items-center">
-              <div className={`bg-white rounded-md flex items-center justify-center ${sidebarCollapsed ? 'w-8 h-8' : 'p-2'}`}>
-                <span className="text-blue-700 font-bold">WA</span>
+    <div className="flex h-screen">
+      <Sidebar 
+        className="fixed h-full z-10 bg-gradient-to-b from-blue-600 to-blue-800 transition-all duration-300 ease-in-out flex flex-col hide-scrollbar"
+        style={{ width: sidebarCollapsed ? '4rem' : '16rem' }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
+        <SidebarContent className="flex-1 overflow-hidden hover:overflow-y-auto hide-scrollbar">
+          <SidebarGroup>
+            <div className="flex items-center justify-between p-4 border-b border-blue-500/30">
+              <div className="flex items-center">
+                <div className={`bg-white rounded-md flex items-center justify-center ${sidebarCollapsed ? 'w-8 h-8' : 'p-2'}`}>
+                  <span className="text-blue-700 font-bold">WA</span>
+                </div>
+                <span className={`text-white font-bold ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                  Workshop Admin
+                </span>
               </div>
-              <span className={`text-white font-bold ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-                Workshop Admin
-              </span>
             </div>
-          </div>
-          
-          <SidebarGroupContent className="hide-scrollbar">
-            <div className="flex flex-col gap-2 mt-6 px-3">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.title}
-                  to={item.path}
-                  end={item.path === '/admin'}
-                  className={({ isActive }) => `
-                    flex items-center p-3 rounded-md cursor-pointer transition-all
-                    ${isActive 
-                      ? 'bg-white/20 text-white font-medium' 
-                      : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                    }
-                    ${sidebarCollapsed ? 'justify-center' : ''}
-                  `}
-                >
-                  <span className="flex-shrink-0"><item.icon size={20} /></span>
-                  <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
-                    {item.title}
-                  </span>
-                </NavLink>
-              ))}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+            
+            <SidebarGroupContent className="hide-scrollbar">
+              <div className="flex flex-col gap-2 mt-6 px-3">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.title}
+                    to={item.path}
+                    end={item.path === '/admin'}
+                    className={({ isActive }) => `
+                      flex items-center p-3 rounded-md cursor-pointer transition-all
+                      ${isActive 
+                        ? 'bg-white/20 text-white font-medium' 
+                        : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                      }
+                      ${sidebarCollapsed ? 'justify-center' : ''}
+                    `}
+                  >
+                    <span className="flex-shrink-0"><item.icon size={20} /></span>
+                    <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
+                      {item.title}
+                    </span>
+                  </NavLink>
+                ))}
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        
+        {/* Footer with back to site button */}
+        <div className="px-3 pb-4 mt-auto border-t border-blue-500/30 pt-4">
+          <button 
+            onClick={handleLogout}
+            className={`
+              flex items-center p-3 rounded-md cursor-pointer transition-all w-full
+              text-white bg-white/10 hover:bg-white/20
+              ${sidebarCollapsed ? 'justify-center' : ''}
+            `}
+          >
+            <span className="flex-shrink-0"><ArrowLeft size={20} /></span>
+            <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
+              Back to Site
+            </span>
+          </button>
+        </div>
+      </Sidebar>
       
-      {/* Footer with back to site button */}
-      <div className="px-3 pb-4 mt-auto border-t border-blue-500/30 pt-4">
-        <button 
-          onClick={handleLogout}
-          className={`
-            flex items-center p-3 rounded-md cursor-pointer transition-all w-full
-            text-white bg-white/10 hover:bg-white/20
-            ${sidebarCollapsed ? 'justify-center' : ''}
-          `}
-        >
-          <span className="flex-shrink-0"><ArrowLeft size={20} /></span>
-          <span className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${sidebarCollapsed ? 'opacity-0 absolute' : 'opacity-100'}`}>
-            Back to Site
-          </span>
-        </button>
+      {/* Main content area */}
+      <div className="flex-1 ml-16 p-6">
+        <Outlet />
       </div>
-    </Sidebar>
+    </div>
   );
 };
 

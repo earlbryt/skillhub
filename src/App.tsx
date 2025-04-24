@@ -15,9 +15,22 @@ import AdminOverview from './pages/admin/Overview';
 import WorkshopAttendees from './pages/admin/WorkshopAttendees';
 import Analytics from './pages/admin/Analytics';
 import { SearchProvider } from './pages/admin/Dashboard';
+import { useState } from 'react';
 import './App.css';
 
 function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  const handleMouseEnter = () => {
+    if (sidebarCollapsed) {
+      setSidebarCollapsed(false);
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    setSidebarCollapsed(true);
+  };
+
   return (
     <div className="App">
       <SearchProvider>
@@ -28,7 +41,13 @@ function App() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<AdminSidebar />}>
+          <Route path="/admin" element={
+            <AdminSidebar 
+              sidebarCollapsed={sidebarCollapsed}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            />
+          }>
             <Route index element={<Dashboard />} />
             <Route path="overview" element={<AdminOverview />} />
             <Route path="workshops" element={<AdminWorkshops />} />
