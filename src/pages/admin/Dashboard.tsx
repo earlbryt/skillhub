@@ -1,95 +1,94 @@
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  BarChart, 
+  LineChart, 
+  PieChart, 
+  FileText,
+  Users,
+  MessageSquare,
+  HelpCircle,
+} from 'lucide-react';
 
-import React, { useState, createContext, useContext } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import { Search } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-
-// Create a context for search functionality
-interface SearchContextType {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-}
-
-export const SearchContext = createContext<SearchContextType>({
-  searchQuery: '',
-  setSearchQuery: () => {},
-});
-
-export const useSearch = () => useContext(SearchContext);
-
-const AdminDashboard = () => {
-  const location = useLocation();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const isMobile = useIsMobile();
-  
-  // Get the current page title based on the route
-  const getPageTitle = () => {
-    const path = location.pathname;
-    if (path === '/admin') return 'Dashboard';
-    if (path.includes('/admin/workshops')) return 'Workshop Management';
-    if (path.includes('/admin/users')) return 'User Management';
-    if (path.includes('/admin/settings')) return 'Settings';
-    return 'Admin Panel';
-  };
-
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
+const Dashboard = () => {
   return (
-    <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
-      <div className="flex h-screen bg-gray-100">
-        <SidebarProvider>
-          <AdminSidebar 
-            sidebarCollapsed={sidebarCollapsed}
-            onMouseEnter={() => setSidebarCollapsed(false)}
-            onMouseLeave={() => setSidebarCollapsed(true)}
-          />
-          
-          {/* Main content with dynamic offset for sidebar */}
-          <div 
-            className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out pb-16 md:pb-0"
-            style={{ 
-              position: 'absolute',
-              left: sidebarCollapsed ? '4rem' : '16rem',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-            }}
-          >
-            {/* Header */}
-            <header className="bg-white p-4 flex justify-between items-center shadow-md border-b border-gray-200 sticky top-0 z-10">
-              <div className="flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">{getPageTitle()}</h1>
-                <div className="h-6 w-1 bg-blue-500 rounded-full mx-3 hidden md:block"></div>
-                <span className="text-sm text-gray-500 hidden md:block">Admin Control Panel</span>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="py-2 px-4 pr-10 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                />
-                <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
-              </div>
-            </header>
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* Analytics Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Analytics Overview</CardTitle>
+          <CardDescription>Summary of key metrics</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="text-sm font-medium">Total Revenue</div>
+          <div className="text-2xl font-semibold">$240,000</div>
+          <LineChart className="h-8 w-full" />
+        </CardContent>
+      </Card>
 
-            {/* Dashboard content */}
-            <main className={`flex-1 overflow-auto p-6 space-y-6 ${isMobile ? 'pb-20' : ''}`}>
-              <Outlet />
-            </main>
+      {/* User Engagement */}
+      <Card>
+        <CardHeader>
+          <CardTitle>User Engagement</CardTitle>
+          <CardDescription>How users are interacting</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="text-sm font-medium">Active Users</div>
+          <div className="text-2xl font-semibold">4,567</div>
+          <BarChart className="h-8 w-full" />
+        </CardContent>
+      </Card>
+
+      {/* Content Performance */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Content Performance</CardTitle>
+          <CardDescription>Performance of content pieces</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="text-sm font-medium">Most Popular Article</div>
+          <div className="text-xl font-semibold">"10 Tips for Success"</div>
+          <PieChart className="h-8 w-full" />
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest activities on the platform</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">New Article Published</div>
+            <FileText className="h-4 w-4" />
           </div>
-        </SidebarProvider>
-      </div>
-    </SearchContext.Provider>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">User Registered</div>
+            <Users className="h-4 w-4" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">New Comment</div>
+            <MessageSquare className="h-4 w-4" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Support Requests */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Support Requests</CardTitle>
+          <CardDescription>Open support tickets</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="text-sm font-medium">Open Tickets</div>
+          <div className="text-2xl font-semibold">32</div>
+          <HelpCircle className="h-8 w-full" />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
-export default AdminDashboard;
+export default Dashboard;

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -184,23 +185,32 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
     setLoading(true);
     
     try {
-      // Prepare data for submission
+      // Prepare data for submission - remove any properties that don't exist in the database
       const now = new Date().toISOString();
-      const workshopData = {
-        ...formData,
-        updated_at: now
-      };
       
-      if (!isEditing) {
-        // Add created_at for new workshops
-        workshopData.created_at = now;
-      }
+      // Create a clean object with only the fields we want to send to the database
+      const validFields = [
+        'title', 'description', 'start_date', 'end_date', 
+        'location', 'capacity', 'price', 'instructor', 'image_url'
+      ];
+      
+      const cleanedData: Partial<Workshop> = {};
+      
+      // Only include valid fields that exist in our database schema
+      validFields.forEach(field => {
+        if (formData[field as keyof Partial<Workshop>] !== undefined) {
+          cleanedData[field as keyof Partial<Workshop>] = formData[field as keyof Partial<Workshop>];
+        }
+      });
+      
+      // Add updated_at timestamp
+      cleanedData.updated_at = now;
       
       if (isEditing) {
         // Update existing workshop
         const { error } = await supabase
           .from('workshops')
-          .update(workshopData)
+          .update(cleanedData)
           .eq('id', workshop.id);
           
         if (error) throw error;
@@ -210,21 +220,19 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
           description: "The workshop has been updated successfully.",
         });
       } else {
-        // Create new workshop - fix the type error by ensuring required fields are present
+        // Create new workshop
         const { error } = await supabase
           .from('workshops')
           .insert({
-            title: formData.title || '',
-            description: formData.description || '',
-            start_date: formData.start_date || now,
-            end_date: formData.end_date || now,
-            location: formData.location || '',
-            capacity: formData.capacity || 20,
-            price: formData.price || 0,
-            instructor: formData.instructor || null,
-            image_url: formData.image_url || null,
-            created_at: now,
-            updated_at: now
+            ...cleanedData,
+            title: cleanedData.title || '',
+            description: cleanedData.description || '',
+            start_date: cleanedData.start_date || now,
+            end_date: cleanedData.end_date || now,
+            location: cleanedData.location || '',
+            capacity: cleanedData.capacity || 20,
+            price: cleanedData.price || 0,
+            created_at: now
           });
           
         if (error) throw error;
@@ -742,4 +750,4 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({
   );
 };
 
-export default WorkshopForm; 
+export default WorkshopForm;

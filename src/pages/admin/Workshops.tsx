@@ -103,7 +103,7 @@ const AdminWorkshops = () => {
     
   useEffect(() => {
     fetchWorkshops();
-  }, [sortField, sortDirection, toast]);
+  }, [sortField, sortDirection]);
   
   // Filter workshops based on search query
   const filteredWorkshops = workshops.filter(workshop => {
@@ -132,6 +132,18 @@ const AdminWorkshops = () => {
     
     if (confirmed) {
       try {
+        // First, delete all registrations related to this workshop
+        const { error: registrationsError } = await supabase
+          .from('registrations')
+          .delete()
+          .eq('workshop_id', workshopId);
+
+        if (registrationsError) {
+          console.error('Error deleting workshop registrations:', registrationsError);
+          // Continue with deletion anyway
+        }
+        
+        // Now delete the workshop itself
         const { error } = await supabase
           .from('workshops')
           .delete()
@@ -139,13 +151,13 @@ const AdminWorkshops = () => {
 
         if (error) throw error;
 
+        // Update the local state by filtering out the deleted workshop
+        setWorkshops(workshops.filter(workshop => workshop.id !== workshopId));
+
         toast({
           title: "Workshop deleted",
           description: "The workshop has been successfully deleted.",
         });
-
-        // Refresh workshops list
-        fetchWorkshops();
       } catch (error) {
         console.error('Error deleting workshop:', error);
         toast({
@@ -310,18 +322,6 @@ const AdminWorkshops = () => {
                   >
                     <Edit className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
                     Edit
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    asChild 
-                    className="h-8 text-xs border-gray-200 bg-white text-gray-700 hover:text-blue-700 hover:border-blue-200 shadow-sm"
-                  >
-                    <Link to={`/admin/workshops/${workshop.id}/attendees`}>
-                      <Eye className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
-                      Attendees
-                    </Link>
                   </Button>
                   
                   <Button 
