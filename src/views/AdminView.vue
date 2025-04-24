@@ -1,35 +1,76 @@
-
 <template>
-  <div class="admin-view">
-    <h1>Admin Dashboard</h1>
-    <p>This is the admin dashboard. Only authorized admin users can access this page.</p>
-    
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Checking admin status...</p>
-    </div>
-    
-    <div v-else-if="!isAdmin" class="not-admin">
-      <h2>Access Denied</h2>
-      <p>You do not have admin privileges to access this page.</p>
-      <button @click="goToHome" class="back-button">Back to Home</button>
-    </div>
-    
-    <div v-else class="admin-panel">
-      <h2>Welcome, Admin!</h2>
-      <p>You have access to the admin panel.</p>
-      
-      <div class="admin-actions">
-        <h3>Quick Actions</h3>
-        <div class="action-buttons">
-          <button @click="navigateTo('/admin/users')" class="action-button">
-            <span class="icon">👥</span>
-            Manage Users
-          </button>
-          <button @click="navigateTo('/admin/workshops')" class="action-button">
-            <span class="icon">📅</span>
-            Manage Workshops
-          </button>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div class="admin-view max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="space-y-6">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white p-6 md:p-8">
+          <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2760%27%20height%3D%2760%27%20viewBox%3D%270%200%2060%2060%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cg%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%3E%3Cg%20fill%3D%27%23ffffff%27%20fill-opacity%3D%270.05%27%3E%3Cpath%20d%3D%27M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%27%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30"></div>
+          <div class="relative z-10">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">Admin Dashboard</h1>
+            <p class="text-blue-100 text-lg">Manage your workshop platform with powerful admin tools</p>
+          </div>
+          
+          <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div class="absolute -bottom-8 -left-8 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
+        </div>
+
+        <div v-if="loading" class="flex flex-col items-center justify-center p-12">
+          <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <p class="text-lg text-gray-600">Checking admin status...</p>
+        </div>
+
+        <div v-else-if="!isAdmin" class="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-8 text-center">
+          <div class="max-w-md mx-auto">
+            <h2 class="text-2xl font-bold text-red-800 mb-3">Access Denied</h2>
+            <p class="text-red-600 mb-6">You do not have admin privileges to access this page.</p>
+            <button 
+              @click="goToHome" 
+              class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium transition-all hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="space-y-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome, Admin!</h2>
+            <p class="text-gray-600">You have access to the admin panel.</p>
+          </div>
+
+          <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button 
+                @click="navigateTo('/admin/users')" 
+                class="group p-6 bg-white rounded-xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white text-2xl">
+                    👥
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-lg font-medium text-gray-900 group-hover:text-blue-600">Manage Users</h4>
+                    <p class="text-gray-500">View and manage user accounts</p>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                @click="navigateTo('/admin/workshops')" 
+                class="group p-6 bg-white rounded-xl border border-gray-100 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white text-2xl">
+                    📅
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-lg font-medium text-gray-900 group-hover:text-blue-600">Manage Workshops</h4>
+                    <p class="text-gray-500">Create and edit workshop sessions</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -71,102 +112,17 @@ export default {
 
 <style scoped>
 .admin-view {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  animation: fade-in 0.3s ease-out;
 }
 
-h1 {
-  color: #1f2937;
-  margin-bottom: 1rem;
-}
-
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 0;
-}
-
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top: 4px solid #3b82f6;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.not-admin {
-  background-color: #fee2e2;
-  border: 1px solid #ef4444;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.not-admin h2 {
-  color: #b91c1c;
-  margin-bottom: 1rem;
-}
-
-.back-button {
-  background-color: #3b82f6;
-  color: white;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
-.admin-panel {
-  margin-top: 2rem;
-}
-
-.admin-actions {
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-top: 2rem;
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.action-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
